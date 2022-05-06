@@ -1,0 +1,1 @@
+Convolutional Neural Networks - Bildererkennung mit VGG
