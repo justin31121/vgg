@@ -1,5 +1,5 @@
 import torch
-import urllib
+import urllib.request
 from PIL import Image
 from torchvision import transforms
 
@@ -38,10 +38,21 @@ def guess():
         print(categories[top5_catid[i]], top5_prob[i].item())
 
 def download(url1):
-    url, filename = (url1, "sample.jpg")
-    try: urllib.URLopener().retrieve(url, filename)
-    except: urllib.request.urlretrieve(url, filename)
 
+    ext = ".jpg"
+    if ".png" in url1:
+        ext = ".png"
+    
+    url, filename = (url1, "sample"+ext)
+
+    try:
+        urllib.request.urlretrieve(url, filename)
+    except e:
+        return "Can not download img", False
+
+    return "", True
+    
+    
 if __name__ == "__main__":
     model = torch.hub.load('pytorch/vision:v0.10.0', 'vgg11', pretrained=True)
     model.eval()
@@ -59,5 +70,8 @@ if __name__ == "__main__":
         if inp == "q":
             break
 
-        download(inp)
-        guess()
+        mess, success = download(inp)
+        if success:
+            guess()
+        else:
+            print(mess)

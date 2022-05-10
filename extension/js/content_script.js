@@ -1,25 +1,28 @@
 browser.storage.onChanged.addListener( (changes, area) => {
-	if(area==='local' && 'edit' in changes) {
-		parse();
-	}
+    if(area==='local' && 'edit' in changes) {
+	select();
+    }
 });
 
-async function parse() {
+async function select() {   
+    document.body.addEventListener('click', e => {
 
-	const urls = [];
+	forward(e.target.src).then(answer => {
 
-	[...document.images].forEach(image => {
-		urls.push(image.src)
+	    alert(answer);
+
 	});
+	
+    }, {once: true});
+}
 
-	console.log(urls[7])
-
-	let t = fetch('http://localhost:8020', {
-		headers: {
-			'Url': urls[7]
-		}
-	}).then(resp => resp.text())
-		.then(data => console.log(data));
-
-
+async function forward(url) {
+    
+    let t = await (fetch('http://localhost:8020', {
+	headers: {
+	    'Url': url
+	}
+    }).then(resp => resp.text()));
+    
+    return t;
 }
