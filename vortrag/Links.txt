@@ -1,0 +1,19 @@
+https://arxiv.org/pdf/1409.1556.pdf
+https://medium.com/@mygreatlearning/what-is-vgg16-introduction-to-vgg16-f2d63849f615
+
+
+ -- Aufgaben --
+Deeep Facial Emotion Recognition: https://books.google.de/books?id=XBomEAAAQBAJ&pg=PA377&lpg=PA377&dq=vgg16+applied&source=bl&ots=dgkrdGFgD1&sig=ACfU3U1mObQjrvBQa6KmZ-9FSdBMol-Q6w&hl=de&sa=X&ved=2ahUKEwj-9oPd8d73AhXGif0HHcYtDcwQ6AF6BAgoEAM#v=onepage&q=vgg16%20applied&f=false
+Penumonia Image: https://www.mdpi.com/2076-3417/11/23/11185
+Plankton Classification: http://noiselab.ucsd.edu/ECE285/FinalProjects/Group16.pdf
+Plant Classifiaction: https://www.sciencepubco.com/index.php/ijet/article/view/20781/9757
+
+ -- Training ? --
+https://arxiv.org/ftp/arxiv/papers/1705/1705.03004.pdf
+
+-- VGG ---
+https://arxiv.org/pdf/1409.1556.pdf
+https://cs.stanford.edu/people/karpathy/convnetjs/demo/cifar10.htm
+
+https://datascience.stackexchange.com/questions/9175/how-do-subsequent-convolution-layers-work
+https://stats.stackexchange.com/questions/194142/what-does-1x1-convolution-mean-in-a-neural-network

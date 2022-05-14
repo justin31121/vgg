@@ -1,0 +1,81 @@
+%========================================================================================
+% LaTeX-Beamer-Template
+% TU Dortmund, Informatik Lehrstuhl VII
+%========================================================================================
+\usetheme{Rochester}
+\usepackage[scaled=.90]{helvet}
+
+\RequirePackage{pgf}
+
+\pgfdeclareimage[height=0.07\paperheight]{tu_logo}{tu_logo_pdf}
+\pgfdeclareimage[height=0.07\paperheight]{fi_logo}{fi_logo_pdf}
+
+\setbeamertemplate{blocks}[default]
+\setbeamercovered{transparent}
+
+\beamer@headheight=0.13\paperwidth
+
+\definecolor{tugreen}{RGB}{132,184,24}
+\definecolor{tugray}{HTML}{686868}
+\definecolor{tulightgray}{HTML}{EEEEEE}
+\setbeamercolor*{Title bar}{fg=tugray}
+\setbeamercolor*{Location bar}{fg=tugreen,bg=tulightgray}
+\setbeamercolor*{frametitle}{parent=Title bar}
+\setbeamercolor*{block title}{bg=tugreen,fg=white}
+\setbeamercolor*{block body}{bg=tulightgray,fg=tugray}
+\setbeamercolor*{normal text}{bg=white,fg=tugray}
+\setbeamercolor*{section in head/foot}{bg=tulightgray,fg=tugreen}
+
+\usecolortheme[named=tugreen]{structure}
+
+\setbeamerfont{section in head/foot}{size=\tiny,series=\normalfont}
+\setbeamerfont{frametitle}{size=\Large,series=\bfseries}
+
+\setbeamertemplate{frametitle}
+{
+  \vskip -0.25\beamer@headheight
+  \vskip -\baselineskip
+  \vskip -0.2cm
+  \hskip 0.3cm\usebeamerfont*{frametitle}\insertframetitle
+  \vskip -0.10em
+  \hskip 0.3cm\usebeamerfont*{framesubtitle}\insertframesubtitle
+  \vskip -0.2cm
+}
+\setbeamertemplate{headline}
+{
+  \vspace{0.5cm}
+  \hspace{0.5cm}\pgfuseimage{tu_logo}\hfill \pgfuseimage{fi_logo}\hspace{0.5cm}
+  \vskip 0.1cm
+  \linethickness{0.25pt}
+
+% line
+    \hskip 0.5cm
+  \begin{pgfpicture}
+    \pgfsetlinewidth{0.25pt}
+    \pgfpathmoveto{\pgfpoint{0cm}{0}}
+    \pgfpathlineto{\pgfpoint{\paperwidth-1.0cm}{0}}
+    \pgfusepath{stroke}
+  \end{pgfpicture}
+
+  \vskip -1.26cm
+  \begin{beamercolorbox}[wd=\paperwidth,ht=0.1\beamer@headheight]{Title bar}
+    \usebeamerfont{section in head/foot}%
+    \insertsectionnavigationhorizontal{0pt}{\hskip0.22cm}{}%
+  \end{beamercolorbox}
+
+  \vskip 1.0cm
+  \begin{beamercolorbox}[wd=\paperwidth,ht=0.7\beamer@headheight]{Title bar}
+  \end{beamercolorbox}
+}
+
+\setbeamertemplate{footline}
+{
+  \linethickness{0.25pt}
+  \framelatex{
+  \begin{beamercolorbox}[leftskip=.3cm,wd=\paperwidth,ht=0.25\beamer@headheight,sep=0.1cm]{Location bar}
+    \usebeamerfont{section in head/foot}%
+    \insertshortauthor~|~\insertshorttitle
+    \hfill
+    \insertframenumber/\inserttotalframenumber
+  \end{beamercolorbox}}
+}

@@ -1,0 +1,67 @@
+\section{Kapitel 1}
+\label{sec:Kapitel1}
+
+\subsection{Direktes Zitat}
+\glqq Unter dem Rubrum „Internet der Dinge“ wird in der Logistik seit der Jahrtausendwende die Einführung cyberphysischer Technologien diskutiert. Die Logistik und das Internet der Dinge gelten als herausragende Anwendungsdomäne der vierten industriellen Revolution. In keiner anderen Branche wird in naher Zukunft ein so grundsätzlicher Wandel erwartet. Dies ist einerseits auf die rasante technologische Entwicklung zurückzuführen, andererseits sind viele der wesentlichen technischen und gesellschaftlichen Herausforderungen direkt oder indirekt mit der Logistik und einem effizienten Supply Chain Management verbunden.\grqq \citep[S.~1]{tenHompel2014}
+
+\subsection{Indirektes Zitat}
+Seit der Jahrtausendwende wird in der Logistik die Einführung von cyberphysischer Technologie unter dem Begriff Internet der Dinge diskutiert \citep[S.~1]{tenHompel2014}. \\
+
+Außerdem lassen sich die Autoren \citeauthor{tenHompel2014} auch in einem Fließtext unterbringen. \\
+
+Bevor die Referenzen korrekt ersetzt werden, muss der Befehl bibtex ausgeführt werden. \\ 
+
+In dieser Vorlage wurde das natbib package für das Zitieren genutzt. Das heißt, der Compiler baut die Zitate automatisch richtig mit. Wenn andere Packages wie biber oder biblatex genutzt werden, muss unter Umständen die literature.bib Datei mit BibTex kompiliert werden. Ergo: PDFLatex dann BibTex dann nochmal PDFLatex. 
+
+\subsection{Bild}
+Die beiden vorherigen Unterkapitel wurden aus einem Kapitel des folgenden Buches zitiert:
+\begin{figure}[h]
+	\begin{center}
+		\includegraphics[scale=0.333]{figures/Logistik_4_0.jpg}
+		\caption{Logistik 4.0}
+		\label{fig:test}
+	\end{center}
+\end{figure}
+
+\newpage
+\subsection{Tabelle}
+\begin{table}[h]
+	\begin{center}
+ 		\begin{tabular}{c c c c}
+			\toprule
+			Col1 & Col2 & Col2 & Col3 \\ 
+ 			\midrule
+ 			1 & 6 & 87837 & 787 \\
+			2 & 7 & 78 & 5415 \\
+			3 & 545 & 778 & 7507 \\
+			4 & 545 & 18744 & 7560 \\
+			5 & 88 & 788 & 6344 \\ 
+			\bottomrule
+		\end{tabular}
+		\caption{eine Beispieltabelle}
+		\label{tab:test}
+	\end{center}
+\end{table}
+
+Hier ist ein kurzer Hinweis zu finden, wie gut aussehende Tabellen gestaltet werden können: \url{https://www.namsu.de/Extra/pakete/Booktabs.html}
+
+
+\subsection{Verweise}
+
+Verweise auf ein Kapitel, eine Abbildung oder eine Tabelle werden über Labels möglich.
+Diese Labels werden entweder direkt nach dem Section Befehl eingefügt (siehe Zeile 2 in diesem Dokument) oder aber in die Table oder Figure Umgebungen eingefügt.
+Der Namen ist frei wählbar. 
+Es ist hilfreich, die Art der Referenz z.B. ''fig'' in den Namen aufzunehmen.
+Danach kann ich auf Table \ref{fig:test} sowie auf Abschnitt \ref{sec:Kapitel2} und auf Bild \ref{fig:test} verweisen.
+
+\subsection{Weiteres} 
+Eine detailliertere Anleitung zu vielen allgemeinen Themen findet sich in der Word-Vorlage auf der Homepage des LFO \url{https://lfo.tu-dortmund.de/studium/wissenschaftliche-und-abschlussarbeiten/dokumente-und-vorlagen/}. Im Zweifel gelten die dort notierten Format-Bestimmungen. 
+
+\subsection{Editoren}
+Welcher Editor für die Erstellung von \LaTeX\ Dokumenten verwendet wird, ist dem Benutzer selbst überlassen. Verbreitet und relativ intuitiv ist der Plattformunabhängige Texmaker \url{https://www.xm1math.net/texmaker/}. Hier sollte noch dabei darauf geachtet werden, dass die main.tex (oder bei anderem Namen die dementsprechende) als Masterdatei festzulegen ist.\\ 
+
+Wenn gewünscht, kann auch ein Online-Editor wie Overleaf \url{https://de.overleaf.com/} genutzt werden. Auf der Website lassen sich auch etliche Einsteigerfreundliche Tutorials zum Umgang mit \LaTeX\ finden. \\
+
+Versionskontrolle lässt sich mit \LaTeX\ auch ziemlich einfach lösen, indem man z.B. ein Git Repository nutzt.
+
+

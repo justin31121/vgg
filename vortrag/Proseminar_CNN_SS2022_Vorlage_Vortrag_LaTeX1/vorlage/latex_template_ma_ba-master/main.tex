@@ -1,0 +1,89 @@
+\documentclass[11pt, a4paper]{article}
+
+%Language settings
+\usepackage[utf8]{inputenc}
+\usepackage[german]{babel} % use "english" if thesis is written in English
+
+%Format settings
+\usepackage[top=2.5cm,bottom=2cm,right=2.5cm,left=3.5cm]{geometry}
+\usepackage[onehalfspacing]{setspace}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\leftmark}
+\rhead{\thepage}
+
+%install packages used for graphics, formulas etc.
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage[hyphens]{url}
+\usepackage{hyperref}
+\usepackage{csquotes}
+\usepackage{natbib}
+\usepackage{tocbibind}
+\usepackage[toc, nonumberlist]{glossaries}
+\usepackage[toc, titletoc, title, page]{appendix}
+
+%renames the appendix to the German translation Anhang
+\renewcommand{\appendixtocname}{Anhang}
+\renewcommand{\appendixpagename}{Anhang}
+
+%citation style
+\bibliographystyle{apalike}
+\setcitestyle{square}
+\makeatletter %for small caps citations
+\DeclareRobustCommand\citep
+  {\begingroup\NAT@swatrue\let\NAT@ctype\z@\NAT@partrue
+   \@ifstar{\scshape\NAT@fulltrue\NAT@citetp}%
+           {\scshape\NAT@fullfalse\NAT@citetp}}
+\makeatother
+
+%install new commands, here for correct page-numbering
+\newcommand{\frontmatter}{
+	\cleardoublepage
+	\pagenumbering{Roman}
+}
+\newcommand{\mainmatter}{
+	\cleardoublepage
+	\pagenumbering{arabic}
+	\setcounter{page}{1}
+}
+\newcommand{\attachmentmatter}{
+	\cleardoublepage
+	\pagenumbering{Roman}
+	\setcounter{page}{1}
+}
+
+\begin{document}
+
+%include the title page file, which still has to be updated with author etc.
+\input{title_page/titlepage.tex}
+
+\frontmatter
+\tableofcontents
+\newpage
+\input{00_abbreviations.tex}
+\markboth{ABKÜRZUNGSVERZEICHNIS}{}
+\newpage
+\newpage
+\listoffigures
+\newpage
+\listoftables
+\newpage
+
+\mainmatter
+\input{01_section.tex}
+\newpage
+\input{02_section.tex}
+
+\newpage
+\bibliography{literature}
+\newpage 
+
+\attachmentmatter
+\begin{appendices}
+\section{Sonstiges}
+Hier ist Platz für einen Anhang!
+\end{appendices}
+\end{document}

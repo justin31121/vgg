@@ -1,0 +1,298 @@
+\documentclass[10pt]{beamer}
+
+
+\usetheme{tufi}
+\usepackage{wasysym}
+\usepackage{ucs}
+\usepackage[ngerman]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{graphicx}
+\usepackage[T1]{fontenc}
+\usepackage{verbatim}
+\usepackage[babel,german=quotes]{csquotes}
+
+%========================================================================================
+
+\pdfinfo
+{
+  /Title       (Bilderkennung mit Vgg)
+  /Creator     (TeX)
+  /Author      (Justin Schartner)
+}
+
+\title{Proseminar \enquote{Convolutional Neural Networks - Methoden und Anwendungen}}
+\subtitle{Bilderkennung mit Vgg}
+\author{Justin Schartner}
+\date{\today}
+
+%========================================================================================
+
+\begin{document}
+
+\frame{\titlepage}
+
+\AtBeginSection[]
+{
+  \frame<handout:0>
+  {
+    \frametitle{Struktur}
+    \tableofcontents[currentsection,hideallsubsections]
+  }
+}
+
+\AtBeginSubsection[]
+{
+  \frame<handout:0>
+  {
+    \frametitle{Struktur}
+    \tableofcontents[sectionstyle=show/hide,subsectionstyle=show/shaded/hide]
+  }
+}
+
+\newcommand<>{\highlighton}[1]{
+  \alt#2{\structure{#1}}{{#1}}
+}
+
+\newcommand{\icon}[1]{\pgfimage[height=1em]{#1}}
+
+%INHALT=============================================================================
+%=========================================
+\section{Einleitung}
+\begin{frame}
+	\frametitle{Thema}
+	\begin{block}{Problemstellung}Gibt es CNN-Architekturen, welche Bilder noch besser, als schon bekannte Architekturen klassifizieren k\"onnen?
+	\end{block}
+	\begin{block}{L\"osung}Durch die Erh\"ohung der Tiefe eines CNN verspricht man sich genauere Aussagen \"uber Bilder machen zu k\"onnen.
+	\end{block}
+	\begin{block}{Ergebnis}Die VGG-Architektur hat bewiesen, dass die Tiefe eines CNN, eine ausschlaggebende Komponente hinsichtlich der Bilder-Klassifizierung ist.
+	\end{block}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Gliederung}
+	\begin{itemize}
+	\setlength\itemsep{1em}
+	\item Was ist VGG? \textbf{Allgemeines}
+	\item Wie funktioniert VGG, was macht es besonders? \textbf{Architektur}
+	\item Wie trainiert man ein VGG-net, was ist wichtig? \textbf{Training}
+	\item Wie implementiert man ein VGG-net? \textbf{Beispiel}
+	\item Wie gut ist VGG? \textbf{Bewertung}
+	\end{itemize}
+\end{frame}
+%=========================================
+\section{Allgemeines}
+\begin{frame}
+  \frametitle{Eckdaten}
+	\begin{itemize}
+		\setlength\itemsep{1em}
+		\item \textbf{V}isual \textbf{G}eometry \textbf{G}roup
+		\item Department of Engineering Sciecne, University of Oxford
+		\item Karen Simonyan und Andrew Zisserman
+	 	\item \textbf{Veröffentlicht}: 4 Sep 2014
+		\item \textbf{Letzte Änderung}: 10 Apr 2015
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Idee}
+	\begin{block}{Steigerung der Genauigkeit durch:}
+	\begin{itemize}
+		\setlength\itemsep{1em}
+		\item Steigerung der Tiefe, des CNNs
+		\item Schachtelung von Convolutional-Layer-Bl\"ocken
+		\item Einsatz von kleinen 3x3-Filtern und einer Stride von 1
+	\end{itemize}
+	\end{block}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Aufgaben/ Einsatz}
+	\begin{block}{Bilderkennung}
+		\begin{itemize}
+			\setlength\itemsep{1em}
+			\item Imagenet
+			\item Pneumoina Image
+			\item Deep Facial Emotion Recognition
+			\item Plankton Classification
+			\item Plant Image Classification
+			\item ...
+		\end{itemize}
+	\end{block}
+\end{frame}
+
+%=========================================
+\section{Architektur}		
+\begin{frame}
+	\frametitle{Architekturarten}
+		\begin{center}
+			{\tiny
+			\begin{tabular}{| c | c | c | c | c | c |}
+				\hline
+				\multicolumn{6}{|c|}{ConvNet Configuration} \\
+				\hline
+				A & A-LRN & B & C & D & E \\
+				\hline
+				\vtop{\hbox{\strut 11 weight}\hbox{\strut layers}} &
+				\vtop{\hbox{\strut 11 weight}\hbox{\strut layers}} &
+				\vtop{\hbox{\strut 13 weight}\hbox{\strut layers}} &
+				\vtop{\hbox{\strut 16 weight}\hbox{\strut layers}} &
+				\vtop{\hbox{\strut 16 weight}\hbox{\strut layers}} &
+				\vtop{\hbox{\strut 19 weight}\hbox{\strut layers}} \\
+				\hline \hline
+				\multicolumn{6}{|c|}{input (224 x 224 RGB-image)} \\
+				\hline
+				\vtop{\hbox{\strut conv3-64}} &
+				\vtop{\hbox{\strut conv3-64}\hbox{\strut \textbf{LRN}}} &
+				\vtop{\hbox{\strut conv3-64}\hbox{\strut \textbf{conv3-64}}} &
+				\vtop{\hbox{\strut conv3-64}\hbox{\strut conv3-64}} &
+				\vtop{\hbox{\strut conv3-64}\hbox{\strut conv3-64}} &
+				\vtop{\hbox{\strut conv3-64}\hbox{\strut conv3-64}} \\
+				\hline
+				\multicolumn{6}{|c|}{maxpool} \\
+				\hline
+				\vtop{\hbox{\strut conv3-128}} &
+				\vtop{\hbox{\strut conv3-128}} &
+				\vtop{\hbox{\strut conv3-128}\hbox{\strut \textbf{conv3-128}}} &
+				\vtop{\hbox{\strut conv3-128}\hbox{\strut conv3-128}} &
+				\vtop{\hbox{\strut conv3-128}\hbox{\strut conv3-128}} &
+				\vtop{\hbox{\strut conv3-128}\hbox{\strut conv3-128}} \\
+				\hline
+				\multicolumn{6}{|c|}{maxpool} \\
+				\hline
+				\vtop{\hbox{\strut conv3-256}\hbox{\strut conv3-256}} &
+				\vtop{\hbox{\strut conv3-256}\hbox{\strut conv3-256}} &
+				\vtop{\hbox{\strut conv3-256}\hbox{\strut conv3-256}} &
+				\vtop{\hbox{\strut conv3-256}\hbox{\strut conv3-256}\hbox{\strut \textbf{conv1-256}}} &
+				\vtop{\hbox{\strut conv3-256}\hbox{\strut conv3-256}\hbox{\strut \textbf{conv3-256}}} &
+				\vtop{\hbox{\strut conv3-256}\hbox{\strut conv3-256}\hbox{\strut conv3-256}\hbox{\strut \textbf{conv3-256}}} \\
+				\hline
+				\multicolumn{6}{|c|}{maxpool} \\
+				\hline
+				\vtop{\hbox{\strut conv3-512}\hbox{\strut conv3-512}} &
+				\vtop{\hbox{\strut conv3-512}\hbox{\strut conv3-512}} &
+				\vtop{\hbox{\strut conv3-512}\hbox{\strut conv3-512}} &
+				\vtop{\hbox{\strut conv3-512}\hbox{\strut conv3-512}\hbox{\strut \textbf{conv1-512}}} &
+				\vtop{\hbox{\strut conv3-512}\hbox{\strut conv3-512}\hbox{\strut \textbf{conv3-512}}} &
+				\vtop{\hbox{\strut conv3-512}\hbox{\strut conv3-512}\hbox{\strut conv3-512}\hbox{\strut \textbf{conv3-512}}} \\
+				\hline
+				\multicolumn{6}{|c|}{maxpool} \\
+				\hline
+				\vtop{\hbox{\strut conv3-512}\hbox{\strut conv3-512}} &
+				\vtop{\hbox{\strut conv3-512}\hbox{\strut conv3-512}} &
+				\vtop{\hbox{\strut conv3-512}\hbox{\strut conv3-512}} &
+				\vtop{\hbox{\strut conv3-512}\hbox{\strut conv3-512}\hbox{\strut \textbf{conv3-512}}} &
+				\vtop{\hbox{\strut conv3-512}\hbox{\strut conv3-512}\hbox{\strut \textbf{conv3-512}}} &
+				\vtop{\hbox{\strut conv3-512}\hbox{\strut conv3-512}\hbox{\strut conv3-512}\hbox{\strut \textbf{conv3-512}}} \\
+				\hline
+				\multicolumn{6}{|c|}{maxpool} \\
+				\hline
+				\multicolumn{6}{|c|}{FC-4096} \\
+				\hline
+				\multicolumn{6}{|c|}{FC-4096} \\
+				\hline
+				\multicolumn{6}{|c|}{FC-1000} \\
+				\hline
+				\multicolumn{6}{|c|}{soft-max} \\
+				\hline
+			\end{tabular}
+		}
+		\end{center}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Architekur}
+	\begin{block}{Convolutional Layers}
+		\begin{itemize}
+			\item receiptive field: 3x3, 1x1
+			\item activation: RelU, stride: 1, padding: 1, channels: 64, 128, 512, 512
+		\end{itemize}
+	\end{block}
+	\begin{block}{Pooling Layer}
+		\begin{itemize}
+			\item Max-Pool
+			\item field: 2x2, stride: 2
+		\end{itemize}
+	\end{block}
+	\begin{block}{Fully-Connected Layers}
+		\begin{itemize}
+			\item activation: RelU
+			\item channels: 4096, 4096, 1000
+		\end{itemize}
+	\end{block}
+	\begin{block}{Softmax Layer}
+	\end{block}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Convolutional Layers}
+	\begin{itemize}
+		\item 
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Hidden Layers}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Fully Connected Layers}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Softmax}
+\end{frame}
+
+%=========================================
+\section{Training}
+\begin{frame}
+	\frametitle{Title}
+	\framesubtitle{Subtitle}
+	\begin{block}{LaTex}
+	\begin{itemize}
+		\item Ein Punkt
+		\item Zwei Punkte
+	\end{itemize}
+	\end{block}
+\end{frame}
+
+%=========================================
+\section{Beispiel}
+\begin{frame}
+	\frametitle{Vgg initialisieren}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Vgg laden}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Vgg trainieren}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Vgg benutzen}
+\end{frame}
+
+%=========================================
+\section{Bewertung}
+\begin{frame}
+	\frametitle{Komplexität}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Performance}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Vergleich}
+\end{frame}
+
+%==========================================
+\section{Ausblick}
+\begin{frame}
+	\frametitle{Ausblick}
+\end{frame}
+
+
+\end{document}
