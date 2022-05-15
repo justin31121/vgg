@@ -227,9 +227,25 @@
 \begin{frame}
 	\frametitle{Convolutional Layers}
 	\begin{itemize}
-		\item 
+	\item Input: widthxheightxdepth, depth := feature maps
+        \item Stride:1 und Padding:1 => Größe beibehalten
+        \item Filter: 3x3x(feature maps), bzw: 1x1x(feature maps)
+        \item Filter count: 64, 128, .. => Bildet ab auf 64, 128, ... feature maps ab
+        \item Mit Hifle von einem Dot-Product
+        \item Output: widthxheightx(Filter Count)
 	\end{itemize}
 \end{frame}
+
+\begin{frame}
+	\frametitle{Convolutional Layers}
+	\begin{itemize}
+        \item Kernel: 3x3
+        \item Input 
+       \item Filter: 3x3x(feature maps)
+	\item (Filter Count) x (sum[(feature maps) x ])
+	\end{itemize}
+\end{frame}
+
 
 \begin{frame}
 	\frametitle{Hidden Layers}
