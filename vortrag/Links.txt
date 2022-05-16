@@ -14,6 +14,7 @@ https://arxiv.org/ftp/arxiv/papers/1705/1705.03004.pdf
 -- VGG ---
 https://arxiv.org/pdf/1409.1556.pdf
 https://cs.stanford.edu/people/karpathy/convnetjs/demo/cifar10.htm
+https://towardsdatascience.com/forward-and-backward-propagations-for-2d-convolutional-layers-ed970f8bf602
 -- richtig gute seite ---
 https://towardsdatascience.com/a-comprehensive-introduction-to-different-types-of-convolutions-in-deep-learning-669281e58215
 

@@ -231,25 +231,51 @@
         \item Stride:1 und Padding:1 => Größe beibehalten
         \item Filter: 3x3x(feature maps), bzw: 1x1x(feature maps)
         \item Filter count: 64, 128, .. => Bildet ab auf 64, 128, ... feature maps ab
-        \item Mit Hifle von einem Dot-Product
         \item Output: widthxheightx(Filter Count)
+        \item Apply Filters, Recognise Features on Input
 	\end{itemize}
 \end{frame}
 
 \begin{frame}
 	\frametitle{Convolutional Layers}
 	\begin{itemize}
-        \item Kernel: 3x3
-        \item Input 
-       \item Filter: 3x3x(feature maps)
-	\item (Filter Count) x (sum[(feature maps) x ])
+        \item bilder ?
+        \item z_{i,j,f} =
+          \sum_c^C(\sum_{m=0}^{k_1-1}(\sum_{n=0}^{k_2-1}((w^f_{m,n,c} * a_{prev_pad_{i+m,j+n,c}}) + b^f)))
+        \item a_{i,j,f} = g(z_{i,j,f}), g := activation function
+        \item ======
+        \item dz_{i,j,f} = da_{i,j,f} * g'(z_{i,j,f})
+        \item dw_{i,j,f}^f = \sum_{m=0}^{n_H-1}(\sum_{n=0}^{n_W-1}(dz_{m,n,f} * a_{prev_pad_{i+m,j+n,c}}))
+        \item db^f = \sum_{m=0}^{n_H-1}(\sum_{n=0}^{n_W-1}(dz_{m,n,f}))
+        \item da_{prev_{i,j,c}} = \sum_{f=0}^{F-1}(\sum_{m=0}^{n_H-1}(\sum_{n=0}^{n_W-1}(dz_{m,n,f} * w^f_{i-m+p1,j-n+p2,c})))
 	\end{itemize}
 \end{frame}
 
+\begin{frame}
+  \frametitle{Convolutional Layers}
+  \begin{itemize}
+    \item mehr Bilder ? 
+  \end{itemize}
+\end{frame}
 
 \begin{frame}
-	\frametitle{Hidden Layers}
+  \frametitle{RelU}
+  \begin{itemize}
+  \item f(x) = max(0,x)
+  \item f'(x) = x * (x > 0) ?
+  \item Bild ? 
+  \end{itemize}
 \end{frame}
+
+\begin{frame}
+  \frametitle{Max-Pool}
+  \begin{itemize}
+  \item Stride: 2, Kernel: 2x2 => Divide in half
+  \item nxm => (n/2)x(m/2)
+  \item Decrease Size of Input and Keep useful Information
+  \end{itemize}
+\end{frame}
+
 
 \begin{frame}
 	\frametitle{Fully Connected Layers}
