@@ -89,8 +89,8 @@
 		\item \textbf{V}isual \textbf{G}eometry \textbf{G}roup
 		\item Department of Engineering Sciecne, University of Oxford
 		\item Karen Simonyan und Andrew Zisserman
-	 	\item \textbf{Verˆffentlicht}: 4 Sep 2014
-		\item \textbf{Letzte ƒnderung}: 10 Apr 2015
+	 	\item \textbf{Ver√∂ffentlicht}: 4 Sep 2014
+		\item \textbf{Letzte √Ñnderung}: 10 Apr 2015
 	\end{itemize}
 \end{frame}
 
@@ -228,7 +228,7 @@
 	\frametitle{Convolutional Layers}
 	\begin{itemize}
 	\item Input: widthxheightxdepth, depth := feature maps
-        \item Stride:1 und Padding:1 => Grˆﬂe beibehalten
+        \item Stride:1 und Padding:1 => Gr√∂√üe beibehalten
         \item Filter: 3x3x(feature maps), bzw: 1x1x(feature maps)
         \item Filter count: 64, 128, .. => Bildet ab auf 64, 128, ... feature maps ab
         \item Output: widthxheightx(Filter Count)
@@ -311,8 +311,8 @@
   \frametitle{Training}
   \framesubtitle{Drop-out}
   \begin{itemize}
-  \item Ein Neuron wird aus dem Netzwerk tempor‰r entfernt
-  \item Neuronen werden mit einer Wahrscheinlichkeit p entfernt, wieder hinzugef¸gt
+  \item Ein Neuron wird aus dem Netzwerk tempor√§r entfernt
+  \item Neuronen werden mit einer Wahrscheinlichkeit p entfernt, wieder hinzugef√ºgt
   \item Overfitting zu dem Training-Set soll verhindert werden
   \item Drop-out -> more noisy network
   \item Gut in der Praxis
@@ -334,7 +334,7 @@
   \frametitle{Training}
   \framesubtitle{Momentum}
   \begin{itemize}
-    \item
+    \item 
   \end{itemize}
 \end{frame}
 
@@ -368,7 +368,7 @@
 %=========================================
 \section{Bewertung}
 \begin{frame}
-	\frametitle{Komplexit‰t}
+	\frametitle{Komplexit√§t}
 \end{frame}
 
 \begin{frame}
