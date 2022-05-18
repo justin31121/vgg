@@ -1,5 +1,5 @@
 \documentclass[10pt]{beamer}
-
+%\documentclass[10pt,handout]{beamer}
 
 \usetheme{tufi}
 \usepackage{wasysym}
@@ -239,15 +239,15 @@
 \begin{frame}
 	\frametitle{Convolutional Layers}
 	\begin{itemize}
-        \item bilder ?
-        \item z_{i,j,f} =
-          \sum_c^C(\sum_{m=0}^{k_1-1}(\sum_{n=0}^{k_2-1}((w^f_{m,n,c} * a_{prev_pad_{i+m,j+n,c}}) + b^f)))
-        \item a_{i,j,f} = g(z_{i,j,f}), g := activation function
-        \item ======
-        \item dz_{i,j,f} = da_{i,j,f} * g'(z_{i,j,f})
-        \item dw_{i,j,f}^f = \sum_{m=0}^{n_H-1}(\sum_{n=0}^{n_W-1}(dz_{m,n,f} * a_{prev_pad_{i+m,j+n,c}}))
-        \item db^f = \sum_{m=0}^{n_H-1}(\sum_{n=0}^{n_W-1}(dz_{m,n,f}))
-        \item da_{prev_{i,j,c}} = \sum_{f=0}^{F-1}(\sum_{m=0}^{n_H-1}(\sum_{n=0}^{n_W-1}(dz_{m,n,f} * w^f_{i-m+p1,j-n+p2,c})))
+        %\item bilder ?
+        %\item z_{i,j,f} =
+          %\sum_c^C(\sum_{m=0}^{k_1-1}(\sum_{n=0}^{k_2-1}((w^f_{m,n,c} * a_{prev_pad_{i+m,j+n,c}}) + b^f)))
+        %\item a_{i,j,f} = g(z_{i,j,f}), g := activation function
+        %\item ======
+        %\item dz_{i,j,f} = da_{i,j,f} * g'(z_{i,j,f})
+        %\item dw_{i,j,f}^f = \sum_{m=0}^{n_H-1}(\sum_{n=0}^{n_W-1}(dz_{m,n,f} * a_{prev_pad_{i+m,j+n,c}}))
+        %\item db^f = \sum_{m=0}^{n_H-1}(\sum_{n=0}^{n_W-1}(dz_{m,n,f}))
+        %\item da_{prev_{i,j,c}} = \sum_{f=0}^{F-1}(\sum_{m=0}^{n_H-1}(\sum_{n=0}^{n_W-1}(dz_{m,n,f} * w^f_{i-m+p1,j-n+p2,c})))
 	\end{itemize}
 \end{frame}
 

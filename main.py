@@ -8,7 +8,7 @@ from torchvision import transforms
 if __name__ == "__main__":
 
     #download image
-    url, filename = ("https://github.com/pytorch/hub/raw/master/images/dog.jpg", "dog.jpg")
+    url, filename = ("https://image.shutterstock.com/image-photo/pug-dog-isolated-on-white-260nw-231983164.jpg", 'dog1.jpg')
     try: urllib.URLopener().retrieve(url, filename)
     except: urllib.request.urlretrieve(url, filename)
 

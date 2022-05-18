@@ -38,7 +38,7 @@ class VGG_net(nn.Module):
             if type(x) == int:
                 out_channels = x
                 
-                layers += [nn.Conv2d(in_channels=in_channels,out_channels=out_channels,
+                layers += [nn.Conv2d(in_channels=in_channels, out_channels=out_channels,
                                      kernel_size=(3,3), stride=(1,1), padding=(1,1)),
                            nn.BatchNorm2d(x),
                            nn.ReLU()]
