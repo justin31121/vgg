@@ -1,8 +1,0 @@
-\babel@toc {ngerman}{}
-\beamer@sectionintoc {1}{Einleitung}{2}{0}{1}
-\beamer@sectionintoc {2}{Allgemeines}{5}{0}{2}
-\beamer@sectionintoc {3}{Architektur}{9}{0}{3}
-\beamer@sectionintoc {4}{Training}{16}{0}{4}
-\beamer@sectionintoc {5}{Beispiel}{18}{0}{5}
-\beamer@sectionintoc {6}{Bewertung}{23}{0}{6}
-\beamer@sectionintoc {7}{Ausblick}{27}{0}{7}
