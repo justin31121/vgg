@@ -344,3 +344,9 @@ graph [
 
 instance Show MyGraph where
   show myGraph = toGML myGraph
+
+
+writeGML :: String -> MyGraph -> IO ()
+writeGML path graph = do
+  writeFile path (show graph)
+  

@@ -182,7 +182,7 @@ Sollte der Index negativ sein, so soll der String
 elemAtIndex :: Int -> [a] -> Either String a
 elemAtIndex _ []     = Left "Fehler: Index zu gross"
 elemAtIndex 0 (x:xs) = Right x
-elemAtIndex n (x:xs)e
+elemAtIndex n (x:xs)
   | n < 0 = Left "Fehler: Negativer Index"
   | otherwise = elemAtIndex (n-1) xs
   
