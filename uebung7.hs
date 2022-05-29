@@ -1,3 +1,4 @@
+
 module Uebung7 where
 
 import Control.Monad
@@ -232,10 +233,6 @@ isJust :: Maybe a -> Bool
 isJust (Just _) = True
 isJust Nothing = False
 
-ge :: Maybe a -> [a]
-ge (Just x) = [x]
-ge Nothing = []
-
 foo :: [Maybe Int] -> Maybe [Int]
 foo xs = do
   allJust <- foldl (\(Just acc) next -> Just $ acc && isJust next) (Just True) xs
@@ -268,8 +265,71 @@ cartesianProduct [[1,2], [3,4], [5,6], []] ~>
 
 cartesianProduct [[1,2], [3,4], [5,6], [7]] ~>
 [[1,3,5,7],[1,3,6,7],[1,4,5,7],[1,4,6,7],[2,3,5,7],[2,3,6,7],[2,4,5,7],[2,4,6,7]]
+
+
+mapLK :: (a -> b) -> [a] -> [b]
+mapLK f xs = [f x | x<-xs]
+
+mapDo :: (a -> b) -> [a] -> [b]
+mapDo f xs = do
+  y <- xs
+  return $ f y
 -}
 
---cartesianProduct :: [[a]] -> [[a]]
+cartesianProduct' :: [[a]] -> [[a]]
+cartesianProduct' [] = [[]]
+cartesianProduct' (xs:xss) = [x:ys | x<-xs, ys<-yss]
+  where yss = cartesianProduct' xss
 
+cartesianProduct :: [[a]] -> [[a]]
+cartesianProduct =
+  foldr (\next acc -> next >>= (<$> acc) . (:)) [[]]
+
+t :: [a] -> [[a]] -> [[a]]
+t next acc = concat (map ((<$> acc) . (:))  next)
+  where k = (<$> acc) . (:)
+
+id' :: [[Int]] -> [[Int]]
+id' = foldr t [[]]
+
+{-
+
+concat $ map ((<$> [[3], [4]]) . (:)) [1,2]
+
+concat $ ((<$> [[3], [4]]) . (:)) 1 : ((<$> [[3], [4]]) . (:)) 2
+~> concat $ [ [[1,3], [1,4]], [[2,3], [2,4]]]
+~> [[1,3], [1,4], [2,3], [2,4]]
+
+((<$> [[3], [4]]) . (:)) 1
+~> (<$>) ((:) 1) [[3], [4]]
+~> [[1,3], [1,4]]
+
+((<$> [[3], [4]]) . (:)) 2
+~> (<$>) ((:) 2) [[3], [4]]
+~> [[2,3], [2,4]]
+
+=====================================================
+concat $ map ((<$> [[]]) . (:)) [3,4]
+
+concat $ ((<$> [[]]) . (:)) 3 : ((<$> [[]]) . (:)) 4
+~> concat $[ [[3]], [[4]] ]
+~> [[3], [4]]
+
+((<$> [[]]) . (:)) 3
+~> (<$>) ((:) 3) [[]]
+~> [[3]]
+
+((<$> [[]]) . (:)) 4
+~> (<$>) ((:) 4) [[]]
+~> [[4]]
+
+============================================================
+
+foldr t [[]] [[1,2], [3,4]]
+
+~> ([1,2] t ([3,4] t [[]]))
+~> ([1,2] t [[3], [4]])
+~> [[1,3],[1,4],[2,3],[2,4]]
+
+-}
 
