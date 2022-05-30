@@ -1,16 +1,16 @@
 #include <iostream>
-#include "Matrix.hpp"
+
+#include "fclayer.hpp"
 
 using namespace std;
 
-
 int main() {
 
-    Matrix t({
-            {1, 2, 3},
-        });
+  Matrix<float> input({
+      {0.0f, 1.3f, 2.6f},
+    });
 
-    cout << t.to_string() << "\n";
+  FcLayer k(2, 3);
     
-    return 0;
+  return 0;
 }

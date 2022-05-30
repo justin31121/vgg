@@ -5,17 +5,18 @@
 #define ROW_CAP 12
 #define COL_CAP 12
 
+template <typename T>
 class Matrix {
 private:
-    std::vector< std::vector<int> > matrix;
+    std::vector< std::vector<T> > matrix;
     int row;
     int col;
 public:
 
-    Matrix(std::vector< std:: vector<int>> vec) {
+    Matrix(std::vector< std:: vector<T>> vec) {
 
-        int r = vec.size();
-        int c = vec[0].size();
+        T r = vec.size();
+        T c = vec[0].size();
         
         if(r > ROW_CAP) {
             std::cout << "ERROR: Maximum row size is " << ROW_CAP << " (" << r << ")\n";
@@ -31,7 +32,7 @@ public:
         matrix = vec;
     };
     
-    Matrix(int r, int c): matrix(r, std::vector<int> (c, 0)) {
+  Matrix(int r, int c): matrix(r, std::vector<T> (c, 0)) {
         if(r > ROW_CAP) {
             std::cout << "ERROR: Maximum row size is " << ROW_CAP << " (" << r << ")\n";
             exit(1);
@@ -73,7 +74,7 @@ public:
         return word;
     };
 
-    Matrix shift(int k) {
+    Matrix shift(T k) {
         Matrix result(row, col);
 
         for(int i=0;i<row;i++) {
@@ -85,12 +86,12 @@ public:
         return result;  
     }
 
-    Matrix scale(int k) {
+    Matrix scale(T k) {
         Matrix result(row, col);
 
         for(int i=0;i<row;i++) {
             for(int j=0;j<col;j++) {
-	result.matrix[i][j] = matrix[i][j] * k;
+	      result.matrix[i][j] = matrix[i][j] * k;
             }
         }
         
@@ -108,7 +109,7 @@ public:
 
         for(int i=0;i<row;i++) {
             for(int j=0;j<col;j++) {
-	result.matrix[i][j] = matrix[i][j] + a.matrix[i][j];
+	      result.matrix[i][j] = matrix[i][j] + a.matrix[i][j];
             }
         }
         
@@ -126,7 +127,7 @@ public:
 
         for(int i=0;i<row;i++) {
             for(int j=0;j<col;j++) {
-	result.matrix[i][j] = matrix[i][j] - a.matrix[i][j];
+	      result.matrix[i][j] = matrix[i][j] - a.matrix[i][j];
             }
         }
         
@@ -145,11 +146,11 @@ public:
 
         for(int i=0;i<row;i++) {
             for(int k=0;k<a.col;k++) {
-	int sum = 0;
-	for(int j=0;j<col;j++) {
-	    sum += matrix[i][j] * a.matrix[j][k];
-	}
-	result.matrix[i][k] = sum;
+	      T sum = 0;
+	      for(int j=0;j<col;j++) {
+		sum += matrix[i][j] * a.matrix[j][k];
+	      }
+	      result.matrix[i][k] = sum;
             }
         }
 
@@ -160,7 +161,7 @@ public:
         Matrix result(col, row);
 
         for(int i=0;i<row;i++) {
-            for(int j=0;j<col;j++) {
+	  for(int j=0;j<col;j++) {
 	result.matrix[j][i] = matrix[i][j];
             }
         }
@@ -168,7 +169,7 @@ public:
         return result;
     }
 
-    std::vector< std::vector<int> > get_matrix() {
+    std::vector< std::vector<T> > get_matrix() {
         return matrix;
     }
 };

@@ -8,7 +8,8 @@ class FCLayer(Layer):
 
     def forward_propagation(self, input_data):
         self.input = input_data
-        self.output = np.dot(self.input, self.weights) + self.bias        
+        self.output = np.dot(self.input, self.weights) + self.bias
+        
         return self.output
 
     def backward_propagation(self, output_error, learning_rate):
