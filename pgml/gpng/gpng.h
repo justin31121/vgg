@@ -1,9 +1,10 @@
 #ifndef GPNG_H
 #define GPNG_H
 
-#include <png.h>
+
 #include <stdlib.h>
 #include <string.h>
+#include <png.h>
 
 #define color_a(r1,g1,b1,a1) (Color) {.r = r1, .g = g1, .b = b1, .a = a1}
 #define color(r1,g1,b1) (Color) {.r = r1, .g = g1, .b = b1, .a = 255}

@@ -1,7 +1,7 @@
 #ifndef PGML_PARSE_H
 #define PGML_PARSE_H
 
-#include "pgml.h"
+#include ".\pgml\pgml.h"
 
 void usage(char *msg);
 bool is_gml_file(char* filepath);
