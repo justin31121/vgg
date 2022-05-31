@@ -2,7 +2,7 @@
 
 #include ".\src\fclayer.hpp"
 #include ".\src\activationlayer.hpp"
-#include ".\src\relu.hpp"
+#include ".\src\activations.hpp"
 
 using namespace std;
 
@@ -13,16 +13,15 @@ int main() {
     });
 
   FcLayer dense1(2, 3);
-
-  ReLU t;
   
-  ActivationLayer act(&t);
+  ActivationLayer act1(relu, relu_prime);
 
   //========
 
-  Matrix<float> temp = dense1.forward_propagation(input);
+  Matrix<float> result =
+    act1.forward_propagation(dense1.forward_propagation(input));
 
-  cout << act.forward_propagation(temp).to_string() << "\n";
+  cout << result.to_string() << "\n";
     
   return 0;
 }

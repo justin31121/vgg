@@ -1,30 +1,33 @@
 #ifndef ACTIVATIONLAYER_H
 #define ACTIVATIONLAYER_H
 
-#include ".\src\activationfunction.hpp"
+#include <functional>
 
 class ActivationLayer: public Layer {
 private:
-  ActivationFunction *f;
+  std::function<Matrix<float>(Matrix<float>)> activate;
+  std::function<Matrix<float>(Matrix<float>)> activate_prime;
   Matrix<float> input;
   Matrix<float> output;
 public:
 
-  ActivationLayer(ActivationFunction *_f):
+  ActivationLayer(std::function<Matrix<float>(Matrix<float>)> _activate,
+		  std::function<Matrix<float>(Matrix<float>)> _activate_prime):
     input(0, 0),
     output(0 ,0)
   {
-    f = _f;
+    activate = _activate;
+    activate_prime = _activate_prime;
   };
   
   Matrix<float> forward_propagation(Matrix<float> _input) {
     input = _input;
-    output = (*f).activate(_input);
+    output = activate(_input);
     return output;
   };
 
   Matrix<float> backward_propagation(Matrix<float> output_error, float learning_rate) {
-    return (*f).activate_prime(input).mult(output_error);
+    return activate_prime(input).mult(output_error);
   };
 };
 
