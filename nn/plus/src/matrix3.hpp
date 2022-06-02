@@ -4,157 +4,311 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <functional>
 
 template<typename T>
 class Matrix {
 private:
-  std::vector< std::vector< std::vector<T> > > matrix;
-  int height;
-  int width;
-  int depth;
+    std::vector< std::vector< std::vector<T> > > matrix;
+    int length;
+    int row;
+    int col;
 
-  bool one_d() {
-    return width==1 && depth==1;
-  }
+    bool one_d() {
+        return row==1 && col==1;
+    };
 
-  bool two_d() {
-    return width!=1 && depth==1;
-  }
+    bool two_d() {
+        return row!=1 && col==1;
+    };
 
-  bool three_d() {
-    return width!=1 && depth!=1;
-  }
+    bool three_d() {
+        return row!=1 && col!=1;
+    };
 public:
 
-  Matrix(std::vector< std::vector< std::vector<T>>>& vec):
-    matrix(0, std::vector<std::vector<T>> (0, std::vector<T> (0, 0)))
-  {
-    height = vec.size();
-    width = vec[0].size();
-    depth = vec[0][0].size();
+    template <typename F, typename std::enable_if< std::is_same<F, T>::value, void** >::type = nullptr > 
+    Matrix(std::vector<F> vec):
+        matrix(0, std::vector<std::vector<T>> (0, std::vector<T> (0, 0)))
+    {
+        length = 1;
+        row = 1;
+        col = vec.size();
+        
+        std::vector< std::vector< std::vector<T>>> temp(length, std::vector<std::vector<T>> (row, std::vector<T> (col, 0)));
 
-    std::vector< std::vector< std::vector<T>>> temp(height, std::vector<std::vector<T>> (width, std::vector<T> (depth, 0)));
-
-    for(int i=0;i<height;i++) {
-      for(int j=0;j<width;j++) {
-	for(int k=0;k<depth;k++) {
-	  temp[i][j][k] = vec[i][j][k];
+        for(int z=0;z<length;z++) {
+            for(int i=0;i<row;i++) {
+	for(int j=0;j<col;j++) {
+	    temp[z][i][j]= vec[j];
 	}
-      }
-    }
+            }
+        }
 
-    matrix = temp;
-  };
+        matrix = temp;
+    };
 
+    Matrix(int c):
+        matrix(1, std::vector<std::vector<T>> (1, std::vector<T> (c, 0)))
+    {
+        length = 1;
+        row = 1;
+        col = c;
+    };
 
-  Matrix(std::vector< std::vector<T>>& vec):
-    matrix(0, std::vector<std::vector<T>> (0, std::vector<T> (0, 0)))
-  {
-    height = vec.size();
-    width = vec[0].size();
-    depth = 1;
+    template <typename F, typename std::enable_if< std::is_same<F, std::vector<T>>::value, void** >::type = nullptr > 
+    Matrix(std::vector<F> vec):
+        matrix(0, std::vector<std::vector<T>> (0, std::vector<T> (0, 0)))
+    {
+        length = 1;
+        row = vec.size();
+        col = vec[0].size();
+        
+        std::vector< std::vector< std::vector<T>>> temp(length, std::vector<std::vector<T>> (row, std::vector<T> (col, 0)));
 
-    std::vector< std::vector< std::vector<T>>> temp(height, std::vector<std::vector<T>> (width, std::vector<T> (1, 0)));
-
-    for(int i=0;i<height;i++) {
-      for(int j=0;j<width;j++) {
-	temp[i][j][0] = vec[i][j];
-      }
-    }
-
-    matrix = temp;
-  };
-
-
-  Matrix(std::vector<T>& vec):
-    matrix(0, std::vector<std::vector<T>> (0, std::vector<T> (0, 0)))
-  {
-    height = vec.size();
-    width = 1;
-    depth = 1;
-
-    std::vector< std::vector< std::vector<T>>> temp(height, std::vector<std::vector<T>> (1, std::vector<T> (1, 0)));
-
-    for(int i=0;i<height;i++) {
-      temp[i][0][0] = vec[i];
-    }
-
-    matrix = temp;
-  };
-  
-  Matrix(int h):
-    matrix(h, std::vector<std::vector<T>> (1, std::vector<T> (1, 0)))
-  {
-
-    std::cout << "here\n";
-    
-    height = h;
-    width = 1;
-    depth = 1;
-  };
-
-
-  Matrix(int h, int w):
-    matrix(h, std::vector<std::vector<T>> (w, std::vector<T> (1, 0)))
-  {
-    height = h;
-    width = w;
-    depth = 1;
-  };
-
-  Matrix(int h, int w, int d):
-    matrix(h, std::vector<std::vector<T>> (w, std::vector<T> (d, 0)))
-  {
-
-    std::cout << "ehmmm\n";
-    
-    height = h;
-    width = w;
-    depth = d;
-  };
-
-  std::string to_string() {
-    
-    std::string acc = "[ ";
-    for(int i=0;i<height;i++) {
-      if(width==1) {
-	acc+=std::to_string(matrix[i][0][0]);
-	if(i!=height-1) {
-	  acc += ", ";
+        for(int z=0;z<length;z++) {
+            for(int i=0;i<row;i++) {
+	for(int j=0;j<col;j++) {
+	    temp[z][i][j]= vec[i][j];
 	}
-      }
-      else {
-	if(i!=0) {
-	  acc+="  ";
+            }
+        }
+
+        matrix = temp;
+    };
+
+    Matrix(int r, int c):
+        matrix(1, std::vector<std::vector<T>> (r, std::vector<T> (c, 0)))
+    {
+        length = 1;
+        row = r;
+        col = c;
+    };
+
+    template <typename F, typename std::enable_if< std::is_same<F, std::vector<std::vector<T>>>::value, void** >::type = nullptr > 
+    Matrix(std::vector<F> vec):
+        matrix(0, std::vector<std::vector<T>> (0, std::vector<T> (0, 0)))
+    {
+        length = vec.size();
+        row = vec[0].size();
+        col = vec[0][0].size();
+        
+        std::vector< std::vector< std::vector<T>>> temp(length, std::vector<std::vector<T>> (row, std::vector<T> (col, 0)));
+
+        for(int i=0;i<length;i++) {
+            for(int j=0;j<row;j++) {
+	for(int k=0;k<col;k++) {
+	    temp[i][j][k]= vec[i][j][k];
+	}
+            }
+        }
+
+        matrix = temp;
+    };
+
+    Matrix(int l, int r, int c):
+        matrix(l, std::vector<std::vector<T>> (r, std::vector<T> (c, 0)))
+    {
+        length = l;
+        row = r;
+        col = c;
+    };
+
+    friend std::ostream& operator<<(std::ostream& os, Matrix& m)
+    {
+        os << "[\n";
+        for(int i=0;i<m.length;i++) {
+            os << "  [";
+            for(int j=0;j<m.row;j++) {
+	if(j!=0) {
+	    os <<"   ";
+	}
+	os << "[";
+	for(int k=0;k<m.col;k++) {
+	    os << m.matrix[i][j][k];
+	    if(k!=m.col-1) {
+	        os << ", ";
+	    }
+	}
+	os << "]";
+	if(j!=m.row-1) {
+	    os << ",\n";
+	}
+            }
+            os << "]\n\n";
+        }
+        return os << "]";
+    }
+
+    std::string to_string() {
+        std::string acc = "[\n";
+        for(int i=0;i<length;i++) {
+            acc += "  [";
+            for(int j=0;j<row;j++) {
+	if(j!=0) {
+	    acc+="   ";
 	}
 	acc += "[";
-	for(int j=0;j<width;j++) {
-	  if(depth!=1) {	    
-	    std::string acc_d = "[";
-	    for(int k=0;k<depth;k++) {
-	      acc_d += std::to_string(matrix[i][j][k]);
-	      if(k!=depth-1) {
-		acc_d +=", ";
-	      }	    
+	for(int k=0;k<col;k++) {
+	    acc+=std::to_string(matrix[i][j][k]);
+	    if(k!=col-1) {
+	        acc+=", ";
 	    }
-	    acc+=acc_d+"]";
-	  }
-	  else {
-	    acc+=std::to_string(matrix[i][j][0]);
-	  }
-	  if(j!=width-1) {
-	    acc +=", ";
-	  }
 	}
-	acc += "]";
-	if(i!=height-1) {
-	  acc += "\n";
+	acc+="]";
+	if(j!=row-1) {
+	    acc+=",\n";
 	}
+            }
+            acc += "]\n\n";
+        }
+        return acc+"]";
+    };
 
-      }
+    bool equals(Matrix<T> a) {
+        if(length!=a.length || row!=a.row || col!=a.col) {
+            return false;
+        }
+
+        for(int i=0;i<length;i++) {
+            for(int j=0;j<row;j++) {
+	for(int k=0;k<col;k++) {
+	    if(matrix[i][j][k]!=a.matrix[i][j][k]) {
+	        return false;
+	    }
+	}
+            }
+        }
+
+        return true;
+    };
+
+    void dimMiss() {
+        std::cout << "ERROR: Dimension mismatch\n";
+        std::exit(1);
+    };
+
+    void dimMiss(Matrix<T> a) {
+        if(length!=a.length || row!=a.row || col!=a.col) {                  
+            std::cout << "ERROR: Dimension mismatch\n";
+            std::exit(1);
+        }
+    };
+
+    void log() {
+        std::cout << "(" << length << ", " << row << ", " << col << ")\n";
     }
-    return acc+" ]";
-  }
+
+    Matrix<T> mult(Matrix<T> a) {
+
+        log();
+        std::cout << (*this);
+        a.log();
+        std::cout << a;
+
+        if(col!=a.row) {
+            dimMiss();  
+        }
+
+        Matrix result(length, row, a.col);
+
+        for(int z=0;z<length;z++) {	
+            for(int i=0;i<row;i++) {
+	for(int k=0;k<a.col;k++) {
+	    T sum = 0;
+	    for(int j=0;j<col;j++) {
+	        sum += matrix[z][i][j] * a.matrix[z][j][k];
+	    }
+	    result.matrix[z][i][k] = sum;
+	}
+            }	
+        }
+            
+        return result;
+    };
+
+    Matrix<T> for_each(std::function<T(T)> f) {
+        Matrix<T> result(length, row, col);
+        
+        for(int i=0;i<length;i++) {
+            for(int j=0;j<row;j++) {
+	for(int k=0;k<col;k++) {
+	    result.matrix[i][j][k] = f(matrix[i][j][k]);
+	}
+            }
+        }
+
+        return result;
+    }
+    
+    Matrix<T> for_each(Matrix<T> a, std::function<T(T, T)> f) {
+        dimMiss(a);
+        
+        Matrix<T> result(length, row, col); 
+        
+        for(int i=0;i<length;i++) {
+            for(int j=0;j<row;j++) {
+	for(int k=0;k<col;k++) {
+	    result.matrix[i][j][k] = f(matrix[i][j][k], a.matrix[i][j][k]);
+	}
+            }
+        }
+
+        return result;
+    };
+
+    Matrix<T> add(Matrix<T> a) {
+
+        log();
+        std::cout << (*this);
+        a.log();
+        std::cout << a;
+
+        if(a.length!=0 || row!=a.row || col!=a.col) {
+            dimMiss();
+        } 
+
+        Matrix<T> result(length, row, col);
+        
+        for(int i=0;i<length;i++) {
+            for(int j=0;j<row;j++) {
+	for(int k=0;k<col;k++) {
+	    result.matrix[i][j][k] = matrix[0][j][k] + a.matrix[0][j][k];
+	}
+            }
+        }        
+        
+        return result;
+    };
+
+    Matrix<T> sub(Matrix<T> a) {
+
+        std::function<T(T, T)> f = [](T n, T m) -> T {return n - m;}; 
+        
+        return for_each(a, f);
+    };
+
+    Matrix<T> scale(T b) {
+
+        std::function<T(T)> f = [](T n) -> T {return n*1;};
+        
+        return for_each(f);
+    };
+    
+    Matrix<T> transpose() {
+
+        Matrix<T> result(length, col, row);
+        
+        for(int i=0;i<length;i++) {
+            for(int j=0;j<row;j++) {
+	for(int k=0;k<col;k++) {
+	    result.matrix[i][k][j] = matrix[i][j][k];
+	}
+            }
+        }
+
+        return result;
+    };
 };
 
 

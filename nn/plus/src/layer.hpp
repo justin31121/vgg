@@ -1,8 +1,8 @@
 #ifndef LAYER_H
 #define LAYER_H
 
-#include ".\src\util.hpp"
-#include ".\src\matrix.hpp"
+#include ".\util.hpp"
+#include ".\matrix3.hpp"
 
 class Layer {
 public:
