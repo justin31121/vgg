@@ -1,8 +1,6 @@
 #ifndef ACTIVATIONLAYER_H
 #define ACTIVATIONLAYER_H
 
-#include <functional>
-
 class ActivationLayer: public Layer {
 private:
   std::function<Matrix<float>(Matrix<float>)> activate;

@@ -3,6 +3,10 @@
 
 #include ".\src\layer.hpp"
 
+float random_float(float x) {
+  return randf(0.0, 1.0);
+}
+
 class FcLayer: public Layer {
 private:
   Matrix<float> weights;
@@ -17,20 +21,8 @@ public:
     input(0, 0),
     output(0,0)
   {
-    std::vector< std::vector<float> > w(input_size, std::vector<float>(output_size, 0));
-    std::vector< std::vector<float> > b(1, std::vector<float>(output_size, 0));
-    
-    for(int i=0;i<input_size;i++) {
-      for(int j=0;j<output_size;j++) {
-	w[i][j] = randf(-1.0, 1.0);
-	b[0][j] = randf(-1.0, 1.0);
-      }
-    }
-
-    Matrix<float> temp_weights(w);
-    Matrix<float> temp_bias(b);
-    weights = temp_weights;
-    bias = temp_bias;
+    weights = weights.apply(random_float);
+    bias = bias.apply(random_float);
   };
   
   Matrix<float> forward_propagation(Matrix<float> _input) {

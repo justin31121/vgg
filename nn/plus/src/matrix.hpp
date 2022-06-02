@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <string>
+#include <functional>
 
 #define ROW_CAP 12
 #define COL_CAP 12
@@ -76,6 +77,18 @@ public:
     word += " ]";
     return word;
   };
+
+  Matrix apply(std::function<T(T)> f) {
+    Matrix result(row, col);
+
+    for(int i=0;i<row;i++) {
+      for(int j=0;j<col;j++) {
+	result.matrix[i][j] = f(matrix[i][j]);
+      }
+    }
+        
+    return result;  
+  }
 
   Matrix shift(T k) {
     Matrix result(row, col);
