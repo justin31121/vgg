@@ -2,7 +2,7 @@
 #define LAYER_H
 
 #include ".\util.hpp"
-#include ".\matrix3.hpp"
+#include ".\matrix.hpp"
 
 class Layer {
 public:

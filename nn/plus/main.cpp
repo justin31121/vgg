@@ -7,29 +7,12 @@
 
 using namespace std;
 
-typedef float t;
+int main() {
 
-typedef std::vector<t> one;
-typedef std::vector<std::vector<t>> two;
-typedef std::vector<std::vector<std::vector<t>>> three;
-
-void n() {
-
-    Matrix<float> input((three) {
-            {
-	{0, 0}
-            },
-            {
-	{0, 1}
-            },
-            {
-	{1, 0}
-            },
-            {
-	{1, 1}
-            }
+    Matrix<float> input({
+            {0, 1},
         });
-    
+
     FcLayer dense(2, 3);
     ActivationLayer act(relu, relu_prime);
     FcLayer dense2(3, 4);
@@ -39,15 +22,10 @@ void n() {
     net.add_layer(&act);
     net.add_layer(&dense2);
     net.add_layer(&act);
-    
+
     Matrix<float> result = net.predict(input);
-    cout << "here\n";
-    
-}
 
-int main() {
-
-    n();
+    cout << result << "\n";
     
     return 0;
 }

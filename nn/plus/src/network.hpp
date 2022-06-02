@@ -39,7 +39,6 @@ public:
 
        
         for(int i=0;i<layer_size;i++) {
-            std::cout << i << "\n" ;
             temp = (*layers[i]).forward_propagation(temp);
         }
 

@@ -27,7 +27,7 @@ public:
   
     Matrix<float> forward_propagation(Matrix<float> _input) {
         input = _input;
-        output = _input.mult(weights);      
+        output = _input.mult(weights);
         output = output.add(bias);
 
         return output;

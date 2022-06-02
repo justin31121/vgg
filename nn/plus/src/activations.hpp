@@ -1,7 +1,7 @@
 #ifndef RELU_H
 #define RELU_H
 
-#include ".\matrix3.hpp"
+#include ".\matrix.hpp"
 
 float relu_max(float x) {
   return x > 0 ? x : 0;

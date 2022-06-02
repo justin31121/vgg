@@ -1,7 +1,7 @@
 #ifndef LOSSES_H
 #define LOSSES_H
 
-#include ".\src\matrix.hpp"
+#include ".\matrix.hpp"
 
 //return np.mean(np.power(y_true-y_pred, 2))
 Matrix<float> mse(Matrix<float> y_true, Matrix<float> y_pred) {
