@@ -25,10 +25,7 @@ class Network:
 
     def fit(self, x_train, y_train, epochs, learning_rate):
         samples = len(x_train)
-
-
-        print(x_train)
-        return 
+        
         for i in range(epochs):
             err = 0
             for j in range(samples):
@@ -39,6 +36,7 @@ class Network:
                 err += self.loss(y_train[j], output)
 
                 error = self.loss_prime(y_train[j], output)
+                return 
                 for layer in reversed(self.layers):
                     error = layer.backward_propagation(error, learning_rate)
 
