@@ -24,8 +24,33 @@ private:
     }
   };
 public:
+  
+  template <typename F, typename std::enable_if< std::is_same<F, T>::value, void** >::type = nullptr > 
+  Matrix(std::vector<F> vec) {
+    T r = 1;
+    T c = vec.size();
 
-  Matrix(std::vector< std:: vector<T>> vec) {
+    if(r > ROW_CAP) {
+      std::cout << "ERROR: Maximum row size is " << ROW_CAP << " (" << r << ")\n";
+      exit(1);
+    }	    
+    row = r;
+    if(c > COL_CAP) {
+      std::cout << "ERROR: Maximum row size is " << COL_CAP << " (" << c  << ")\n";
+      exit(1);
+    }
+    col = c;
+
+    std::vector<std::vector<T>> temp(r, std::vector<T> (c, 0));
+    for(int j=0;j<col;j++) {
+      temp[0][j] = vec[j];
+    }
+
+    matrix = temp;
+  };
+
+  template <typename F, typename std::enable_if< std::is_same<F, std::vector<T>>::value, void** >::type = nullptr > 
+  Matrix(std::vector<F> vec) {
 
     T r = vec.size();
     T c = vec[0].size();
@@ -125,7 +150,7 @@ public:
     return result;
   };
 
-  Matrix<T> mult(Matrix<T> a) {
+  Matrix<T> dot(Matrix<T> a) {
     if(col!=a.row) {
       std::cout << "ERROR: Can not multiply Dimensions (" << col << ", " << row << ")";
       std::cout << " and (" << a.col << ", " << a.row << ")\n"; 
@@ -145,6 +170,7 @@ public:
     }
 
     return result;
+
   };
 
   Matrix<T> for_each(std::function<T(T)> f) {
@@ -171,7 +197,7 @@ public:
     return result;  
   };
 
-  T mean() {
+  T sum() {
     T sum = 0;
 
     for(int i=0;i<row;i++) {
@@ -180,27 +206,63 @@ public:
       }
     }
 
+    return sum;
+  };
+
+  T mean() {
+    T sum = 0;
+
+    for(int i=0;i<row;i++) {
+      for(int j=0;j<col;j++) {
+	sum += matrix[i][j];
+      }
+    }
+    
     return sum/row/col;
-  }
+  };
+
+  T max() {
+    T sum = matrix[0][0];
+
+    for(int i=0;i<row;i++) {
+      for(int j=0;j<col;j++) {
+	sum = sum < matrix[i][j] ? matrix[i][j] : sum;
+      }
+    }
+
+    return sum;
+  };
     
   Matrix<T> add(Matrix a) {
     check_dimensions(a);
         
     return for_each(a, [](T n, T m) -> T {return n + m;});
-  }
+  };
 
   Matrix<T> sub(Matrix<T> a) {
     check_dimensions(a);
     
     return for_each(a, [](T n, T m) -> T {return n - m;});    
-  }
+  };
+
+  Matrix<T> mult(Matrix<T> a) {
+    check_dimensions(a);
+
+    return for_each(a, [](T n, T m) -> T {return n * m;});
+  };
+
+  Matrix<T> div(Matrix<T> a) {
+    check_dimensions(a);
+
+    return for_each(a, [](T n, T m) -> T {return n / m;});
+  } 
 
   Matrix<T> scale(T k) {
     Matrix<T> result(row, col);
 
     for(int i=0;i<row;i++) {
       for(int j=0;j<col;j++) {
-	result.matrix[i][j] *= k;
+	result.matrix[i][j] = matrix[i][j]*k;
       }
     }
         
@@ -212,7 +274,7 @@ public:
 
     for(int i=0;i<row;i++) {
       for(int j=0;j<col;j++) {
-	result.matrix[i][j] += k;
+	result.matrix[i][j] = matrix[i][j]+k;
       }
     }
         

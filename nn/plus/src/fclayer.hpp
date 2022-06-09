@@ -23,18 +23,16 @@ public:
   
   Matrix<float> forward_propagation(Matrix<float> _input) {
     input = _input;
-    output = _input.mult(weights);
+    output = _input.dot(weights);
     output = output.add(bias);
 
     return output;
   };
 
   Matrix<float> backward_propagation(Matrix<float> output_error, float learning_rate) {
-    Matrix<float> input_error = output_error.mult(weights.transpose());
-    Matrix<float> weights_error = input.transpose().mult(output_error);
-
-    std::cout << input_error << "\n";
-    std::cout << weights_error << "\n";
+    
+    Matrix<float> input_error = output_error.dot(weights.transpose());
+    Matrix<float> weights_error = input.transpose().dot(output_error);
 
     weights = weights.sub(weights_error.scale(learning_rate));
     bias = bias.sub(output_error.scale(learning_rate));

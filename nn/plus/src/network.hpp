@@ -46,7 +46,7 @@ public:
   }
 
   void train(std::vector<Matrix<float>> x_train, std::vector<Matrix<float>> y_train,
-	     int epochs, float learning_rate)
+	     int epochs, float learning_rate, bool log=false)
   {
     int sample_len = x_train.size();
     
@@ -63,14 +63,16 @@ public:
 
 	Matrix<float> error = loss_prime(y_train[j], output);
 	for(int k=layer_size-1;k>=0;k--) {
+	  int row = error.get_row();
+	  int col = error.get_col();
 	  error = (*layers[k]).backward_propagation(error, learning_rate);
 	}
-
       }
       err /= sample_len;
-      std::cout << "epoch " << i << "/" << epochs << " error=" << err << "\n";
-    }
-    
+      if(log) {
+	std::cout << "epoch " << i << "/" << epochs << " error=" << err << "\n";
+      }      
+    }    
   }
 };
 

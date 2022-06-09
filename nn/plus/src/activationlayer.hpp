@@ -25,7 +25,9 @@ public:
   };
 
   Matrix<float> backward_propagation(Matrix<float> output_error, float learning_rate) {
-    return activate_prime(input).mult(output_error);
+    Matrix<float> temp = activate_prime(input);
+    temp = temp.mult(output_error);
+    return temp;
   };
 };
 
