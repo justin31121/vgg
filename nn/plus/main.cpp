@@ -32,7 +32,7 @@ int main() {
       (Matrix<float> (1,1)).for_each([](float n) -> float { return 1;})
     });
   
-  //init
+  //INIT
   FcLayer dense(2, 3);
   ActivationLayer act(relu, relu_prime);
   FcLayer dense2(3, 1);
@@ -44,17 +44,10 @@ int main() {
   net.add_layer(&act);
   net.use(mse, mse_prime);
 
-  //train;
-  Matrix<float> result = net.predict(x_train[0]);
-  Matrix<float> error = mse_prime(y_train[0], result);
-
-  //cout << dense2.getWeights().to_string() << "\n";
-
-  dense2.backward_propagation(error, 0.01).to_string();
-
-  //cout << dense2.getWeights().to_string() << "\n";
+  //TRAIN
   
-  //predict
+
+  //PREDICT
   
   return 0;
 }
