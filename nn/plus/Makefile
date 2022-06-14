@@ -3,3 +3,9 @@ main:
 
 run: main
 	.\bin\main.exe
+
+xor:
+	g++ -o .\bin\xor.exe xor.cpp
+
+xorrun: xor
+	.\bin\xor.exe
