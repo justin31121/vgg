@@ -14,9 +14,9 @@ float mse(Matrix<float> y_true, Matrix<float> y_pred) {
 
 //return 2*(y_pred-y_true)/y_true.size
 Matrix<float> mse_prime(Matrix<float> y_true, Matrix<float> y_pred) {
-  
-  return y_pred.sub(y_true).for_each([](float n) -> float{ return 2*n;});
 
+  float size = y_true.count();
+  return y_pred.sub(y_true).for_each([](float n) -> float{ return 2*n;}).scale(1/size);
 }
 
 #endif // LOSSES_H

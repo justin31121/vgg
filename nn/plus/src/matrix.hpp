@@ -197,6 +197,10 @@ public:
     return result;  
   };
 
+  T count() {
+    return row * col;
+  }
+
   T sum() {
     T sum = 0;
 
