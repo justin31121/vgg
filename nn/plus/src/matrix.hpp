@@ -198,8 +198,17 @@ public:
         return result;  
     };
 
+<<<<<<< HEAD
+  T count() {
+    return row * col;
+  }
+
+  T sum() {
+    T sum = 0;
+=======
     T sum() {
         T sum = 0;
+>>>>>>> 76ddd9d4f5d7641e96e2f8638bab4f54e4a5cd61
 
         for(int i=0;i<row;i++) {
             for(int j=0;j<col;j++) {
