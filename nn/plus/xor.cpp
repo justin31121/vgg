@@ -66,7 +66,7 @@ int main() {
   net.use(mse, mse_prime);
 
   //train
-  net.train(x_train, y_train3, 200, 0.1, true);
+  net.train(x_train, y_train3, 600, 0.1, true);
 
   for(int i=0;i<4;i++) {
     Matrix<float> result = net.predict(x_train[i]);
