@@ -19,8 +19,7 @@ int ssc(int code) {
   if(code<0) {
     fprintf(stderr, "SDL_Error: %s\n", SDL_GetError());
     exit(1);
-  }
-  
+  }  
   return code;
 }
 
@@ -48,30 +47,42 @@ void *sctc(void *ptr) {
   return ptr;  
 }
 
-void draw(SDL_Renderer *rend, TTF_Font *font) {
-  SDL_RenderClear(rend);
+typedef struct{
+  SDL_Texture *font;
+  int width;
+  int height;
+}Font;
 
-  //DRAW TEXT
-  SDL_Surface *screen;
+Font font_init(SDL_Renderer *rend, const char* path) {
+
+  const char alphabet[] = "abcdefghijklmnopqrstufwxyz"; 
   
-  SDL_Color color = {255, 255, 255};
-  if(buffer_size>0) {
-    SDL_Surface *text_surface =
-      sctc(TTF_RenderText_Blended(font, buffer, color));
+  TTF_Font *font = sctc(TTF_OpenFont(path, 16));
+  
 
-    SDL_Texture *message = SDL_CreateTextureFromSurface(rend, text_surface);
+  SDL_Color white = {0, 0, 0};
 
-    int w, h;
-    sstc(TTF_SizeText(font, buffer, &w, &h));
-    SDL_Rect rect = {
-      0, 0, w, h
-    };
+  SDL_Surface *surface =
+    sctc(TTF_RenderText_Blended(font, alphabet, white));
 
-    SDL_RenderCopy(rend, message, NULL, &rect);
-    SDL_FreeSurface(text_surface);
-    SDL_DestroyTexture(message);
-  }
+  SDL_Texture *texture =
+    scc(SDL_CreateTextureFromSurface(rend, surface));
 
+  Font f = { .font = texture, .width = 9, .height=16};
+
+  SDL_FreeSurface(surface);
+
+  TTF_CloseFont(font);
+
+  return f;
+}
+
+void font_close(Font font) {
+  SDL_DestroyTexture(font.font);
+}
+
+void draw(SDL_Renderer *rend, Font font) {
+  SDL_RenderClear(rend);
 
   //DRAW BACKGROUND
   SDL_SetRenderDrawColor(rend, 32, 32, 32, 255);
@@ -100,8 +111,7 @@ int main(int argc, char **argv) {
 
   ssc(SDL_Init(SDL_INIT_VIDEO));
   sstc(TTF_Init());
-  TTF_Font *font = sctc(TTF_OpenFont(FONT_PATH, 24));
-
+  
   SDL_Window *wind =
     scc(SDL_CreateWindow(
 			 "Editor",
@@ -117,6 +127,8 @@ int main(int argc, char **argv) {
 			   -1,
 			   SDL_RENDERER_SOFTWARE
 			   ));
+
+  Font font = font_init(rend, FONT_PATH);
 
   SDL_Event event;
 
@@ -146,8 +158,7 @@ int main(int argc, char **argv) {
   SDL_DestroyRenderer(rend);
   SDL_DestroyWindow(wind);
 
-  TTF_CloseFont(font);
-  font = NULL;
+  font_close(font);
 
   TTF_Quit();
   SDL_Quit();
