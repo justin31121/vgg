@@ -1,166 +1,203 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
-
 #include <stdbool.h>
+
+#include "./sdl_c.h"
+#include "./font.h"
+
+#include "./vec.h"
+#include "./buffer.h"
+
+#define BG_COLOR 0x202020ff
+#define FONT_COLOR 0xffffffff
 
 #define WIDTH 800
 #define HEIGHT 600
 
 #define FONT_PATH "./consola.ttf"
+#define FONT_SIZE 24
 
-#define BUFFER_CAP 1024
-
-char buffer[BUFFER_CAP];
-size_t buffer_size = 0;
+#define ENTER 10
+#define TAB_WIDTH 4
 
 bool running = true;
 
-int ssc(int code) {
-  if(code<0) {
-    fprintf(stderr, "SDL_Error: %s\n", SDL_GetError());
-    exit(1);
-  }  
-  return code;
-}
-
-int sstc(int code) {
-  if(code<0) {
-    fprintf(stderr, "TTF_Error: %s\n", TTF_GetError());
-    exit(1);
-  }  
-  return code;
-}
-
-void *scc(void* ptr) {
-  if(!ptr) {
-    fprintf(stderr, "SDL_Error: %s\n", SDL_GetError());
-    exit(1);
-  }
-  return ptr;
-}
-
-void *sctc(void *ptr) {
-  if(!ptr) {
-    fprintf(stderr, "TTF_Error: %s\n", TTF_GetError());
-    exit(1);
-  }
-  return ptr;  
-}
-
-typedef struct{
-  SDL_Texture *font;
-  int width;
-  int height;
-}Font;
-
-Font font_init(SDL_Renderer *rend, const char* path) {
-
-  const char alphabet[] = "abcdefghijklmnopqrstufwxyz"; 
-  
-  TTF_Font *font = sctc(TTF_OpenFont(path, 16));
-  
-
-  SDL_Color white = {0, 0, 0};
-
-  SDL_Surface *surface =
-    sctc(TTF_RenderText_Blended(font, alphabet, white));
-
-  SDL_Texture *texture =
-    scc(SDL_CreateTextureFromSurface(rend, surface));
-
-  Font f = { .font = texture, .width = 9, .height=16};
-
-  SDL_FreeSurface(surface);
-
-  TTF_CloseFont(font);
-
-  return f;
-}
-
-void font_close(Font font) {
-  SDL_DestroyTexture(font.font);
-}
-
-void draw(SDL_Renderer *rend, Font font) {
-  SDL_RenderClear(rend);
-
-  //DRAW BACKGROUND
-  SDL_SetRenderDrawColor(rend, 32, 32, 32, 255);
-  SDL_RenderPresent(rend);
-}
-
-void key_down(size_t keycode) {
-  //printf("Pressed %lld\n", keycode);
-  switch(keycode) {
-  case SDLK_BACKSPACE:
-    if(buffer_size> 0) {
-      buffer_size--;
-      buffer[buffer_size] = 0;
+float render_char(SDL_Renderer *rend, const Font *font, Vec pos, char c, float scale,
+	 Uint32 color) {
+    
+    if(c<ASCII_LOW) {
+        return 0.0;
     }
-    break;
-  case 'q':
-    //q
-    running = false;
-    break;
-  default:
-    break;
-  }
+    
+    int i = c - ASCII_LOW;
+    
+    SDL_Rect dst = {
+        pos.x, pos.y,
+        font->width * scale,
+        font->height * scale};
+
+    SDL_SetTextureColorMod(font->texture, decode_wo_a(color));
+    SDL_SetTextureAlphaMod(font->texture, decode_a(color));
+
+    SDL_RenderCopy(rend, font->texture, &font->glyphs[i], &dst);
+    
+    return dst.w;
+}
+
+void render_text(SDL_Renderer *rend, const Font *font, Vec pos, const char* cs, float scale,
+	 Uint32 color) {
+    size_t len = strlen(cs);
+
+    for(size_t i=0;i<len;i++) {
+        float off = render_char(rend, font, pos, cs[i], scale, color);
+        pos.x += off;
+    }
+}
+
+void render_text_sized(SDL_Renderer *rend, const Font *font, Vec pos, const char* cs, size_t size, float scale,
+	       Uint32 color) {
+    for(size_t i=0;i<size;i++) {
+        float off = render_char(rend, font, pos, cs[i], scale, color);
+        pos.x += off;
+    }
+}
+
+void render(SDL_Renderer *rend, Font *font, Buffer *buffer, const Cursor *cursor) {
+    SDL_RenderClear(rend);
+
+    //DRAW BUFFER
+    size_t low=0;
+    size_t up=0;
+    size_t line = 0;
+    buffer->lines_size = 0;
+
+    for(;up<buffer->buffer_size;up++) {
+        if(buffer->buffer[up]==ENTER) {
+            render_text_sized(rend, font, vec(0, line*font->height), buffer->buffer + low, up - low, 1.0,
+	              FONT_COLOR);
+            line++;
+            if(buffer->lines_size>=LINE_CAP) {
+	fprintf(stderr, "ERROR: Line overflow\n");
+	exit(1);
+            }
+            buffer->positions[buffer->lines_size] = low;
+            buffer->lines[buffer->lines_size++] = up - low;
+            low = up+1;
+        }
+    }
+    render_text_sized(rend, font, vec(0, line*font->height), buffer->buffer + low, buffer->buffer_size - low, 1.0,
+	              FONT_COLOR);
+    buffer->positions[buffer->lines_size] = low;
+    buffer->lines[buffer->lines_size++] = buffer->buffer_size - low;
+
+    //DRAW CURSOR
+    SDL_Rect rect = { cursor->x*font->width, cursor->y*font->height, font->width, font->height};
+    SDL_SetRenderDrawColor(rend, decode(FONT_COLOR));
+    SDL_RenderFillRect(rend, &rect);
+
+    //DRAW CHAR BEHIND CURSOR
+    if(cursor->pos<buffer->buffer_size) {
+        render_char(rend, font,
+	    vec(cursor->x*font->width,  cursor->y*font->height),
+	    buffer->buffer[cursor->pos], 1.0, BG_COLOR);        
+    }
+
+    //RENDER BACKGROUND
+    SDL_SetRenderDrawColor(rend, decode(BG_COLOR));
+    SDL_RenderPresent(rend);
+}
+
+void key_down(Buffer *buffer, Cursor *cursor, size_t keycode) {
+    //printf("Pressed %lld\n", keycode);
+    switch(keycode) {
+    case SDLK_BACKSPACE:
+        buffer_delete(buffer, cursor, 1);
+        break;
+    case SDLK_ESCAPE:
+        running = false;
+        break;
+    case SDLK_UP:
+        cursor_up(cursor, buffer, 1);
+        break;
+    case SDLK_DOWN:
+        cursor_down(cursor, buffer, 1);
+        break;
+    case SDLK_RIGHT:
+        cursor_right(cursor, buffer, 1);
+        break;
+    case SDLK_LEFT:
+        cursor_left(cursor, buffer, 1);
+        break;
+    case SDLK_RETURN:
+        buffer_insert_size(buffer, cursor, "\n", 1);
+        break;
+    case SDLK_TAB:
+        buffer_insert_size(buffer, cursor, "        ", 8);
+        break;
+    default:
+        break;
+    }
 }
 
 int main(int argc, char **argv) {
 
-  ssc(SDL_Init(SDL_INIT_VIDEO));
-  sstc(TTF_Init());
+    Cursor cursor = {0};
+    Buffer buffer = {0};
+
+    (void) argc;
+    (void) argv;
+        
+    scc(SDL_Init(SDL_INIT_VIDEO));
+    stcc(TTF_Init());
   
-  SDL_Window *wind =
-    scc(SDL_CreateWindow(
-			 "Editor",
-			 SDL_WINDOWPOS_CENTERED,
-			 SDL_WINDOWPOS_CENTERED,
-			 WIDTH, HEIGHT,
-			 SDL_WINDOW_SHOWN
-			 ));
+    SDL_Window *wind =
+        scp(SDL_CreateWindow(
+	             "Editor",
+	             SDL_WINDOWPOS_CENTERED,
+	             SDL_WINDOWPOS_CENTERED,
+	             WIDTH, HEIGHT,
+	             SDL_WINDOW_SHOWN
+	             ));
 
-  SDL_Renderer *rend =
-    scc(SDL_CreateRenderer(
-			   wind,
-			   -1,
-			   SDL_RENDERER_SOFTWARE
-			   ));
+    SDL_Renderer *rend =
+        scp(SDL_CreateRenderer(
+	               wind,
+	               -1,
+	               SDL_RENDERER_SOFTWARE
+	               ));
 
-  Font font = font_init(rend, FONT_PATH);
+    Font font;
+    font_init(&font, rend, FONT_PATH, FONT_SIZE);
 
-  SDL_Event event;
+    SDL_Event event;
+    
+    while(running) {
+        SDL_WaitEvent(&event);
 
-  while(running) {
-    SDL_WaitEvent(&event);
+        switch(event.type) {
+        case SDL_QUIT:
+            running = false;
+            break;
+        case SDL_KEYDOWN:
+            key_down(&buffer, &cursor, event.key.keysym.sym);
+            break;
+        case SDL_TEXTINPUT:
+            buffer_insert(&buffer, &cursor, event.text.text);
+            break;
+        case SDL_MOUSEBUTTONDOWN:
+            if(event.button.button==SDL_BUTTON_LEFT) {
+	cursor_click(&cursor, &buffer, event.button.x, event.button.y, font.width, font.height);
+            } 
+            break;
+        }
 
-    switch(event.type) {
-    case SDL_QUIT:
-      running = false;
-      break;
-    case SDL_KEYDOWN:
-      key_down(event.key.keysym.sym);
-      break;
-    case SDL_TEXTINPUT:
-      size_t size = strlen(event.text.text);
-      if(BUFFER_CAP - buffer_size > 0) {
-	memcpy(buffer + buffer_size, event.text.text, size);
-	buffer_size += size;
-	buffer[buffer_size] = 0;
-      }
-      break;
+        render(rend, &font, &buffer, &cursor);
     }
 
-    draw(rend, font);
-  }
+    SDL_DestroyRenderer(rend);
+    SDL_DestroyWindow(wind);
 
-  SDL_DestroyRenderer(rend);
-  SDL_DestroyWindow(wind);
+    font_close(&font);
 
-  font_close(font);
-
-  TTF_Quit();
-  SDL_Quit();
-  return 0;
+    TTF_Quit();
+    SDL_Quit();
+    return 0;
 }
