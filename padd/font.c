@@ -36,3 +36,39 @@ void font_init(Font *f, SDL_Renderer *rend, const char* path, size_t font_size) 
 void font_close(Font *font) {
     SDL_DestroyTexture(font->texture);
 }
+
+float font_render_char(SDL_Renderer *rend, const Font *font, Vec pos, char c, float scale,
+		  Uint32 color) {
+
+  if(c<ASCII_LOW) {
+    return 0.0;
+  }
+    
+  int i = c - ASCII_LOW;
+    
+  SDL_Rect dst = {
+    pos.x, pos.y,
+    font->width * scale,
+    font->height * scale};
+
+  SDL_SetTextureColorMod(font->texture, decode_wo_a(color));
+  SDL_SetTextureAlphaMod(font->texture, decode_a(color));
+
+  SDL_RenderCopy(rend, font->texture, &font->glyphs[i], &dst);
+    
+  return dst.w;
+}
+
+void font_render_text(SDL_Renderer *rend, const Font *font, Vec pos, const char* cs, float scale, Uint32 color) {
+  size_t len = strlen(cs);
+
+  font_render_text_sized(rend, font, pos, cs, len, scale, color);
+}
+
+void font_render_text_sized(SDL_Renderer *rend, const Font *font, Vec pos, const char* cs, size_t size, float scale, Uint32 color) {
+  for(size_t i=0;i<size;i++) {
+    float off = font_render_char(rend, font, pos, cs[i], scale, color);
+    pos.x += off;
+  }
+}
+
