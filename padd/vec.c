@@ -1,7 +1,5 @@
 #include "./vec.h"
 
-//ich habe hier etwas hinezugefuegt
-
 Vec vec(float a, float b) {
   return (Vec) {a, b};
 }

@@ -14,8 +14,8 @@ typedef struct{
   char buffer[BUFFER_CAP];
   size_t buffer_size;
 
-  int lines[LINE_CAP];
-  int positions[LINE_CAP];
+  size_t lines[LINE_CAP];
+  size_t positions[LINE_CAP];
     
   size_t lines_size;
 }Buffer;

@@ -237,9 +237,13 @@ void cursor_beg_line(Cursor *cursor, const Buffer *buffer, bool shift) {
 }
 
 void cursor_word_right(Cursor *cursor, const Buffer *buffer) {
+  (void) cursor;
+  (void) buffer;
   printf("WORD_RIGHT\n");
 }
 
 void cursor_word_left(Cursor *cursor, const Buffer *buffer) {
+  (void) cursor;
+  (void) buffer;
   printf("WORD_LEFT\n");  
 }
