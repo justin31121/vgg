@@ -1,0 +1,181 @@
+Thema
+	Damals: AlexNet (11x11, 5x5, overlapping Pooling)
+	
+	Simplizität: 	einfaches Design => später
+			kleine Filter => dafür mehr Filter
+
+	=> Struktur erklären ?
+
+Idee
+	Visual Geometry Group, Oxford, 2015
+
+	Tiefe steigern
+	Im Block bleibt die Hoehe + Breite gleich
+	MaxPooling halbiert Hoehe + Breite
+	ReLU
+	Lieber mehr kleine Filter als einzelne große
+
+Aufgaben/ Einsatz
+	Ist erfoglreich !!!!!
+
+Architektur
+	VGG ist eine Familie von Netzwerken
+
+	Farben erklären
+	Merkmalsextraktion + klassisches, dazwischen Flatten
+
+	Input ist 3 dimensional, RGB
+	
+	Breite und Hoehe wird beibehalten
+	Max-Pooling halbiert die Breite und Hoehe
+	Filter-Anzahl im Block verdoppelt sich
+	
+	FCL hat immer 7x7x512 inputs und 1000 (ImageNet)
+	Softmax wird für die Klassifizierung genutzt
+
+	Großes Netzwerk auch für heutige Standarts
+
+Architekturarten
+	Von oben nach zu unten lesen
+	max-pool immer gleich
+	fc-layer immer gleich
+	conv3-64 := 3x3 Filter, 64 Filteranzahl
+	
+	A heißt VGG-13
+	C heißt VGG-16
+	E heißt VGG-19
+
+	VGG16 und VGG19 am populärsten
+	
+	Ausnahmen:	LRN - Locale Response Normalization
+				LRN erhöt nicht die Genauigkeit, hat sich nicht durchgesetzt
+			conv1-256 := 1x1 Filter
+				Wird genutzt um die Feature-Maps/ Volumen zu verändern
+
+Convolutional Layers
+	2d - Filter läuft 2d über das Volumen
+		Filter haben die selbe Tiefe wie das Input
+
+	ReLU
+	
+	Damit Größe beibehalten wird:	3x3 Filter + Padding 1 + Stride 1
+					1x1 Filter + Padding 0 + Stride 1
+
+	Minimaler Filter für den Vergleich
+
+	Filter Anzahl bestimmt die Tiefe/ Anzahl der Feature Maps des Outputs
+	Filter Anzahl steigt mit fortschreitender Tiefe des Netzwerkes
+
+	=> ALLGEMEIN - Merkmalsextrahierung
+
+Convolutional Layers - 3X3
+	Padding damit die Größe beibehalten wird
+	Der Filter hat die Tiefe des Inputs
+	Ein Filter erzeugt eine Feature von dem Output
+		bei Filter-Anzahl: 64, ensteht wieder ein Volumen
+
+	3d vergleich
+
+Convolutional Layers - 1X1
+	Man braucht kein Padding
+	Wird genutzt um die Tiefe/ Feature Maps zu reduzieren
+
+	Ansonsten gleich
+	
+ReLU
+	Ist sowieso populär momentan
+	Ist billig zu berechnen
+		id oder 0
+		1 oder 0
+
+Max-Pooling
+	Fenster 2x2
+	Läuft 2x2
+	Fasst 4 Pixel zu einem zusamme
+
+	B/2 x H/2 := 4 zusammenfassen
+
+	=> Ausschlaggebende Informationen
+
+Fully-Connected Layers
+	Input ist immer gleich, nach Design
+	(7, 7, 512) wird zu 25 088
+	1000 Klassen wegen ImageNet
+
+	ReLU
+	hidden layers mit 4096
+
+	=> Klassifiziert Merkmale
+
+Softmax
+	normalisiert in den Wertebereich [0, 1]
+	mit Hilfe von Exponentialfunktion
+
+	erzeugt Kategoriale Verteilung
+
+	=> Gibt den Output Sinn ?
+
+	HINWEIS: Output könnte nicht negatic sein, da ReLU
+
+Locale Response Normalization
+	Normalisation von Feature-Maps
+
+	Nicht trainierbar
+	
+	Genauigkeit wurde nicht verbessert, deswegen in anderen weggelassen
+
+	In dem Fall nur in der Tiefe und NICHT in x und y
+	(INTER-CHANNEL-LRN)
+
+	================================================
+
+	N := Tiefe/ Anzahl Feature-Maps
+
+	n := range von Norm.
+	k := Damit nicht durch 0 teilen
+	alpha := Norm. Konstante
+	beta := Norm. Konstante
+
+Training
+	VGG ist Architekur, jetzt geht es um ein konkretes Netz
+	
+	Training hat optimale Genauigkeit erzielt und wird von den Autoren so vorgeschlagen
+
+	Teilweise hat man VGG16 mit den Gewichten von VGG13 trainiert, Speed-up
+
+Optimierung durch
+	Batch-Size: 256
+		GUCK NACH BITTE
+	
+	Stochastic Gradient Descent
+	
+	Dropout
+		temporär Verbindungen entfernen und hinzufügen
+		Das Netz kann sich nicht auf einzelne Neuronen verlassen
+		Overfitting wird vermieden
+
+	L2-Regularization
+		Die Fehlerfunktion wird um eine quadratische Funktion erweitert
+		Fehler von Gewichten werden stärker bestraft => Gewichte werden klein gehalten
+
+		Auschlaggebende Gewichte werden während des Trainings wieder auftauchen
+		Nicht notwendige werden gemieden
+
+	Momentum
+		
+Augmentierung
+	ja
+
+Beipsiel
+	mit python und pytorch
+	
+	initialisieren, trainieren und nutzen
+
+Varianten
+	TransferLearning - trainierten Netzwerk erweitern und zum Teil neu trainieren
+
+Algorithmus - Conv-layer
+	architektur wird aufgebaut
+	
+CHECK TRAIN
+
