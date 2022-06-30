@@ -6,19 +6,25 @@
 #include <stdio.h>
 #include <assert.h>
 #include <stdbool.h>
+#include "./vec.h"
 
-#define BUFFER_CAP 1024
-#define LINE_CAP 128
+#define BUFFER_SIZE 1024
+#define LINES_SIZE 128
 
 typedef struct{
-  char buffer[BUFFER_CAP];
+  char *buffer;
   size_t buffer_size;
+  size_t buffer_cap;
 
-  size_t lines[LINE_CAP];
-  size_t positions[LINE_CAP];
+  size_t *lines;
+  size_t *positions;
     
   size_t lines_size;
+  size_t lines_cap;
 }Buffer;
+
+void buffer_init(Buffer *buffer);
+void buffer_quit(Buffer *buffer);
 
 typedef struct{
   size_t x, y;
@@ -30,11 +36,15 @@ typedef struct{
 void cursor_log(const Cursor *cursor);
 
 void cursor_click(Cursor *cursor,
-		  const Buffer *buffer,
-		  size_t _x, size_t _y,
-		  size_t char_width, size_t char_height,
-		  bool sec
-		  );
+    const Buffer *buffer,
+    size_t _x, size_t _y,
+    size_t char_width, size_t char_height,
+    bool sec
+    );
+
+void cursor_reset(Cursor *cursor);
+size_t cursor_dist(Cursor *cursor, const Buffer *buffer, size_t *start, size_t *end);
+void cursor_outer(Cursor *cursor, const Buffer *buffer);
 
 void cursor_right(Cursor *cursor, const Buffer *buffer, size_t size, bool shift);
 void cursor_left(Cursor *cursor, const Buffer *buffer, size_t size, bool shift);

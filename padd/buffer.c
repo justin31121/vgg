@@ -1,5 +1,49 @@
 #include "./buffer.h"
 
+void buffer_check_ptr(Buffer *buffer) {
+  if(!buffer->buffer) {
+    fprintf(stderr, "ERROR: Can not allocate enough memory for buffer\n");
+    exit(1);
+  }
+  if(!buffer->lines) {
+    fprintf(stderr, "ERROR: Can not allocate enough memory for lines\n");
+    exit(1);
+  }
+  if(!buffer->positions) {
+    fprintf(stderr, "ERROR: Can not allocate enough memory for positions\n");
+    exit(1);
+  }
+}
+
+void buffer_init(Buffer *buffer) {
+  buffer->buffer = (char *) malloc(sizeof(char) * BUFFER_SIZE);
+  buffer->buffer_cap = BUFFER_SIZE;
+  buffer->lines = (size_t *) malloc(sizeof(size_t) * LINES_SIZE);
+  buffer->positions = (size_t *) malloc(sizeof(size_t) * LINES_SIZE);
+  buffer->lines_cap = LINES_SIZE;
+  buffer_check_ptr(buffer);
+}
+
+void buffer_quit(Buffer *buffer) {
+  free(buffer->buffer);
+  free(buffer->lines);
+  free(buffer->positions);
+}
+
+void buffer_buffer_alloc(Buffer *buffer, size_t size) {
+
+  while(buffer->buffer_cap < buffer->buffer_size + size) buffer->buffer_cap *= 2;
+  buffer->buffer = (char*) realloc(buffer->buffer, buffer->buffer_cap * sizeof(char));
+  buffer_check_ptr(buffer);
+}
+
+void buffer_lines_alloc(Buffer *buffer) {
+  buffer->lines_cap *= 2;
+  buffer->lines = (size_t *) realloc(buffer->lines, buffer->lines_cap * sizeof(size_t));
+  buffer->positions = (size_t *) realloc(buffer->positions, buffer->lines_cap * sizeof(size_t));
+  buffer_check_ptr(buffer);
+}
+
 void buffer_process_lines(Buffer *buffer) {
   size_t low=0;
   size_t up=0;
@@ -9,9 +53,8 @@ void buffer_process_lines(Buffer *buffer) {
   for(;up<buffer->buffer_size;up++) {
     if(buffer->buffer[up]==10) {
       line++;
-      if(buffer->lines_size>=LINE_CAP) {
-	fprintf(stderr, "ERROR: Line overflow\n");
-	exit(1);
+      if(buffer->lines_size>=buffer->lines_cap) {
+	buffer_lines_alloc(buffer);
       }
       buffer->positions[buffer->lines_size] = low;
       buffer->lines[buffer->lines_size++] = up - low;
@@ -52,9 +95,66 @@ void cursor_click(Cursor *cursor, const Buffer *buffer, size_t _x, size_t _y, si
   else {
     cursor->y = y;
     cursor->x = buffer->lines[cursor->y] < x ? buffer->lines[cursor->y] : x;
-      
+
+    cursor->i = cursor->x;
+    cursor->j = cursor->y;
   }
   cursor->pos = buffer->positions[y] + cursor->x;
+}
+
+void cursor_reset(Cursor *cursor) {
+  cursor->i = cursor->x;
+  cursor->j = cursor->y;
+}
+
+size_t cursor_dist(Cursor *cursor, const Buffer *buffer, size_t *start, size_t *end) {
+  Vec pos = vec(cursor->x, cursor->y);
+  Vec old = vec(cursor->i, cursor->j);
+
+  if(vec_eq(pos, old)) {
+    if(start) *start = cursor->pos;
+    if(end) *end = cursor->pos;
+    return 0;
+  }
+  else {
+    size_t a = cursor->pos;
+    
+    Vec min = vec_min(pos, old);
+    Vec max = vec_max(pos, old);
+
+    size_t dist = 0;
+    for(int i=min.y;i<max.y;i++) {
+      dist += buffer->lines[i];
+    }
+    dist -= min.x;
+    dist += max.x;
+    dist += (max.y - min.y);
+
+    if(vec_eq(pos, min)) {
+      if(start) *start = a;
+      if(end) *end = a+dist;
+    }
+    else {
+      if(start) *start = a - dist;
+      if(end) *end = a;
+    }
+    
+    return dist;
+  }
+}
+
+void cursor_outer(Cursor *cursor, const Buffer *buffer) {
+  Vec pos = vec(cursor->x, cursor->y);
+  Vec old = vec(cursor->i, cursor->j);
+
+  Vec min = vec_min(pos, old);
+  Vec max = vec_max(pos, old);
+
+  if(vec_eq(min, pos)) {
+    cursor->x = max.x;
+    cursor->y = max.y;
+    cursor->pos = buffer->positions[cursor->y] + cursor->x;
+  }
 }
 
 void cursor_right(Cursor *cursor, const Buffer *buffer, size_t size, bool shift) {
@@ -118,20 +218,18 @@ void cursor_down(Cursor *cursor, const Buffer *buffer, size_t size, bool shift) 
 }
 
 void buffer_insert_size(Buffer *buffer, Cursor *cursor, const char* text, size_t size) {
-  if(BUFFER_CAP - buffer->buffer_size > 0) {
-
-    size_t pos = cursor->pos;
-
-    memcpy(buffer->buffer + pos + size, buffer->buffer + pos, buffer->buffer_size - pos + size);
-    memcpy(buffer->buffer + pos, text, size);         
-
-    buffer->buffer_size += size;
-    cursor_right(cursor, buffer, size, false);
+  if(buffer->buffer_cap - buffer->buffer_size <= 0) {
+    buffer_buffer_alloc(buffer, size);
   }
-  else {
-    fprintf(stderr, "BUFFER OVERFLOW\n");
-    exit(1);
-  }
+  
+  size_t pos = cursor->pos;
+
+  memcpy(buffer->buffer + pos + size, buffer->buffer + pos, buffer->buffer_size - pos + size);
+  memcpy(buffer->buffer + pos, text, size);         
+
+  buffer->buffer_size += size;
+  cursor_right(cursor, buffer, size, false);
+
 }
 
 void buffer_insert(Buffer *buffer, Cursor *cursor, const char* text) {
@@ -197,9 +295,8 @@ void buffer_load_file(Buffer *buffer, const char* file_path) {
   char* content = slurp_file(file_path, &size);
 
   for(size_t i=0;i<size;i++) {
-    if(buffer->buffer_size>=BUFFER_CAP) {
-      fprintf(stderr, "ERROR: Buffer overflow\n");
-      exit(1);
+    if(buffer->buffer_size>=buffer->buffer_cap) {
+      buffer_buffer_alloc(buffer, 1);
     }
     
     if(content[i]=='\t') {

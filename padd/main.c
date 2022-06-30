@@ -8,6 +8,7 @@
 
 #define BG_COLOR 0x202020ff
 #define FONT_COLOR 0xffffffff
+#define HG_COLOR 0x606060ff
 
 #define WIDTH 800
 #define HEIGHT 600
@@ -20,7 +21,6 @@
 
 size_t height;
 size_t width;
-
 size_t x = 0;
 size_t y = 0;
 
@@ -37,18 +37,44 @@ void render(SDL_Renderer *rend, Font *font, Buffer *buffer, const Cursor *cursor
   float scale = 1.0;
 
   Vec origin = vec(x*font->width, y*font->height);
+  
+  //DRAW HIGHLIHGTED TEXT
+  Vec pos = vec(cursor->x, cursor->y);
+  Vec old = vec(cursor->i, cursor->j);
+
+  if(!vec_eq(pos, old)) {
+    Vec min = vec_min(pos, old);
+    Vec max = vec_max(pos, old);
+
+    for(int i=min.y;i<=max.y;i++) {
+      float x1;
+      if(i==min.y) {
+	x1 = min.x;
+      }
+      else {
+	x1 = 0;
+      }
+
+      float x2 = width;
+      if(i==max.y) {
+	x2 = max.x - x1;
+      }
+
+      SDL_Rect temp = {x1*font->width - origin.x, i*font->height - origin.y, x2*font->width, font->height};
+      SDL_SetRenderDrawColor(rend, decode(HG_COLOR));
+      SDL_RenderFillRect(rend, &temp);
+
+    }
+  }
 
   //DRAW BUFFER
   buffer_process_lines(buffer);
-  for(size_t i=y;i<y+height;i++) {
+  for(size_t i=y;i<buffer->lines_size;i++) {
     font_render_text_sized(rend, font, vec(0 - origin.x, i*font->height - origin.y),
 			   buffer->buffer + buffer->positions[i], buffer->lines[i],
 			   scale, FONT_COLOR);
   }
-
-  //DRAW HIGHLIHGTED TEXT
   
-
   //DRAW CURSOR
   SDL_Rect rect = { cursor->x*font->width - origin.x, cursor->y*font->height - origin.y, font->width, font->height};
   SDL_SetRenderDrawColor(rend, decode(FONT_COLOR));
@@ -99,6 +125,12 @@ void key_ctrl(size_t keycode, bool on) {
   case SDLK_RSHIFT:
     shift = on;
     break;
+  case SDLK_LALT:
+    alt = on;
+    break;
+  case SDLK_RALT:
+    alt = on;
+    break;
   default:
     break;
   }
@@ -106,24 +138,35 @@ void key_ctrl(size_t keycode, bool on) {
 
 void key_down(Buffer *buffer, Cursor *cursor, size_t keycode, const char* file_path) {
   //printf("Pressed %lld\n", keycode);
+  size_t size, start, end;
+  char* content;
   if(ctrl) {
     switch(keycode) {
+    case 'g':
+      cursor_reset(cursor);
+      break;
     case 'y':
-      char* content;
       content = SDL_GetClipboardText();
       buffer_insert(buffer, cursor, content);
       SDL_free(content);
       break;
     case 'w':
-      if(cursor->x==cursor->i && cursor->y==cursor->j) {
-	printf("no distance\n");
-      }
-      else {	
-	printf("(%lld, %lld) -> (%lld, %lld)\n", cursor->i, cursor->j, cursor->x, cursor->y);
+      size = cursor_dist(cursor, buffer, &start, &end);
+      if(size!=0) {
+	//COPY TO CLIPBOARD
+	char text[size+1];
+	memcpy(text, buffer->buffer + start, end - 1);
+	text[size] = 0;
+	
+	if(SDL_SetClipboardText(text)!=0) {
+	  printf("Cant copy text\n");	  
+	}
+	cursor_outer(cursor, buffer);
+	buffer_delete(buffer, cursor, size);
       }
       break;
     case 'k':
-      size_t size = buffer->lines[cursor->y];
+      size = buffer->lines[cursor->y];
       cursor_right(cursor, buffer, size, false);
       buffer_delete(buffer, cursor, size);
       break;
@@ -137,8 +180,16 @@ void key_down(Buffer *buffer, Cursor *cursor, size_t keycode, const char* file_p
       cursor_beg_line(cursor, buffer, shift);
       break;
     case 'd':
-      cursor_right(cursor, buffer, 1, false);
-      buffer_delete(buffer, cursor, 1);
+      size = cursor_dist(cursor, buffer, NULL, NULL);
+      if(size==0) {
+	cursor_right(cursor, buffer, 1, false);
+	buffer_delete(buffer, cursor, 1);
+      }
+      else {
+	cursor_outer(cursor, buffer);
+	buffer_delete(buffer, cursor, size);
+      }
+      
       break;      
     case 'f':
       cursor_right(cursor, buffer, 1, shift);
@@ -156,10 +207,37 @@ void key_down(Buffer *buffer, Cursor *cursor, size_t keycode, const char* file_p
       break;
     }
   }
-  
+
+  if(alt) {
+    switch(keycode) {
+    case 'w':
+      size = cursor_dist(cursor, buffer, &start, &end);
+      if(size!=0) {
+	//COPY TO CLIPBOARD
+	char text[size+1];
+	memcpy(text, buffer->buffer + start, end);
+	text[size] = 0;
+	
+	if(SDL_SetClipboardText(text)!=0) {
+	  printf("Cant copy text\n");	  
+	}
+      }
+      break;
+    default:
+      break;
+    }
+  }
+
   switch(keycode) {
   case SDLK_BACKSPACE:
-    buffer_delete(buffer, cursor, 1);
+    size = cursor_dist(cursor, buffer, NULL, NULL);
+    if(size==0) {
+      buffer_delete(buffer, cursor, 1);
+    }
+    else {
+      cursor_outer(cursor, buffer);      
+      buffer_delete(buffer, cursor, size);
+    }
     break;
   case SDLK_ESCAPE:
     running = false;
@@ -177,9 +255,15 @@ void key_down(Buffer *buffer, Cursor *cursor, size_t keycode, const char* file_p
     cursor_left(cursor, buffer, 1, shift);
     break;
   case SDLK_RETURN:
+    size = cursor_dist(cursor, buffer, NULL, NULL);
+    if(size!=0) {
+      cursor_outer(cursor, buffer);
+      buffer_delete(buffer, cursor, size);
+    }
     buffer_insert_size(buffer, cursor, "\n", 1);
     break;
   case SDLK_TAB:
+    buffer_insert_size(buffer, cursor, "    ", 4);
     break;
   default:
     break;
@@ -192,6 +276,8 @@ int main(int argc, char **argv) {
 
   Cursor cursor = {0};
   Buffer buffer = {0};
+
+  buffer_init(&buffer);
         
   scc(SDL_Init(SDL_INIT_VIDEO));
   stcc(TTF_Init());
@@ -206,7 +292,7 @@ int main(int argc, char **argv) {
 			 SDL_WINDOWPOS_CENTERED,
 			 SDL_WINDOWPOS_CENTERED,
 			 WIDTH, HEIGHT,
-			 SDL_WINDOW_SHOWN
+			 SDL_WINDOW_RESIZABLE
 			 ));
 
   SDL_Renderer *rend =
@@ -222,7 +308,8 @@ int main(int argc, char **argv) {
   height = HEIGHT / font.height;
 
   SDL_Event event;
-    
+  size_t d;
+  
   while(running) {
     SDL_WaitEvent(&event);
 
@@ -238,17 +325,40 @@ int main(int argc, char **argv) {
       key_ctrl(event.key.keysym.sym, false);      
       break;
     case SDL_TEXTINPUT:
+      d = cursor_dist(&cursor, &buffer, NULL, NULL);
+      if(d!=0) {
+	cursor_outer(&cursor, &buffer);
+	buffer_delete(&buffer, &cursor, d);
+      }
       buffer_insert(&buffer, &cursor, event.text.text);
+      break;
+    case SDL_MOUSEWHEEL:
+      if(event.wheel.y>0) {
+	y = y > 0 ? (y-1) : 0;
+      }
+      else if(event.wheel.y<0){
+	y++;
+      }
+      break;
+    case SDL_MOUSEMOTION:
       break;
     case SDL_MOUSEBUTTONDOWN:
       drag = true;
+      cursor_reset(&cursor);
       if(event.button.button==SDL_BUTTON_LEFT) {
-	cursor_click(&cursor, &buffer, event.button.x, event.button.y, font.width, font.height, false);
+	cursor_click(&cursor, &buffer,
+		     event.button.x + x*font.width,
+		     event.button.y + y*font.height ,
+		     font.width, font.height, false);
       }
       break;
     case SDL_MOUSEBUTTONUP:
       if(event.button.button==SDL_BUTTON_LEFT) {
-	cursor_click(&cursor, &buffer, event.button.x, event.button.y, font.width, font.height, true);
+	cursor_click(&cursor, &buffer,
+		     event.button.x + x*font.width,
+		     event.button.y + y*font.height,
+		     font.width, font.height, true);
+
       }
       drag = false;
       break;
@@ -261,6 +371,8 @@ int main(int argc, char **argv) {
   SDL_DestroyWindow(wind);
 
   font_close(&font);
+
+  buffer_quit(&buffer);
 
   TTF_Quit();
   SDL_Quit();
