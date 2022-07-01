@@ -1,7 +1,8 @@
 Thema
 	Damals: AlexNet (11x11, 5x5, overlapping Pooling)
 	
-	Simplizität: 	einfaches Design => später
+	Simplizität: 	traditionelles CNN
+					einfaches Design => später
 			kleine Filter => dafür mehr Filter
 
 	=> Struktur erklären ?
@@ -9,14 +10,17 @@ Thema
 Idee
 	Visual Geometry Group, Oxford, 2015
 
+	VGG ist eine Architektur/ Familie von Netzwerken
+
 	Tiefe steigern
-	Im Block bleibt die Hoehe + Breite gleich
-	MaxPooling halbiert Hoehe + Breite
 	ReLU
 	Lieber mehr kleine Filter als einzelne große
 
 Aufgaben/ Einsatz
 	Ist erfoglreich !!!!!
+	ImageNet 2014 die beste Architektur nach GoogleNet
+
+	Auch sonst eine erfolgreiche Architektur
 
 Architektur
 	VGG ist eine Familie von Netzwerken
@@ -25,6 +29,14 @@ Architektur
 	Merkmalsextraktion + klassisches, dazwischen Flatten
 
 	Input ist 3 dimensional, RGB
+	Ein Volumen wird gefalten, keine Fläche
+	Dimensionen erklären ?
+
+	224x224x3 = 150 528
+
+	56 x 56 x 256 = 802 816
+
+	7x7x512    = 25 088
 	
 	Breite und Hoehe wird beibehalten
 	Max-Pooling halbiert die Breite und Hoehe
@@ -34,6 +46,7 @@ Architektur
 	Softmax wird für die Klassifizierung genutzt
 
 	Großes Netzwerk auch für heutige Standarts
+	VGG16 mit 134M parametern
 
 Architekturarten
 	Von oben nach zu unten lesen
@@ -52,9 +65,12 @@ Architekturarten
 			conv1-256 := 1x1 Filter
 				Wird genutzt um die Feature-Maps/ Volumen zu verändern
 
+	LRN!!!!!!!!!!!!!!!!!!! am Ende
+
 Convolutional Layers
 	2d - Filter läuft 2d über das Volumen
-		Filter haben die selbe Tiefe wie das Input
+		Bild mit RGB oder Feature Maps
+	Filter haben die selbe Tiefe wie das Input
 
 	ReLU
 	
@@ -141,6 +157,7 @@ Training
 	
 	Training hat optimale Genauigkeit erzielt und wird von den Autoren so vorgeschlagen
 
+	Training ist aufwendig, wegen der Tiefe des Netzes
 	Teilweise hat man VGG16 mit den Gewichten von VGG13 trainiert, Speed-up
 
 Optimierung durch
@@ -152,6 +169,7 @@ Optimierung durch
 	Dropout
 		temporär Verbindungen entfernen und hinzufügen
 		Das Netz kann sich nicht auf einzelne Neuronen verlassen
+		Wird in der Praxis gerne gemacht
 		Overfitting wird vermieden
 
 	L2-Regularization
