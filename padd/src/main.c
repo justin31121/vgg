@@ -13,11 +13,16 @@
 #define WIDTH 800
 #define HEIGHT 600
 
-#define FONT_PATH "./consola.ttf"
-#define FONT_SIZE 24
+#define PAD_LEFT 10
+#define PAD_TOP 10
+
+#define FONT_PATH "./rsc/consola.ttf"
+#define FONT_SIZE 32
 
 #define ENTER 10
 #define TAB_WIDTH 4
+
+size_t font_size = FONT_SIZE;
 
 size_t height;
 size_t width;
@@ -63,29 +68,28 @@ void render(SDL_Renderer *rend, Font *font, Buffer *buffer, const Cursor *cursor
       SDL_Rect temp = {x1*font->width - origin.x, i*font->height - origin.y, x2*font->width, font->height};
       SDL_SetRenderDrawColor(rend, decode(HG_COLOR));
       SDL_RenderFillRect(rend, &temp);
-
     }
   }
 
   //DRAW BUFFER
   buffer_process_lines(buffer);
   for(size_t i=y;i<buffer->lines_size;i++) {
-    font_render_text_sized(rend, font, vec(0 - origin.x, i*font->height - origin.y),
+    font_render_text_sized(rend, font, vec(0 - origin.x, i*font->height*scale - origin.y),
 			   buffer->buffer + buffer->positions[i], buffer->lines[i],
 			   scale, FONT_COLOR);
   }
   
   //DRAW CURSOR
-  SDL_Rect rect = { cursor->x*font->width - origin.x, cursor->y*font->height - origin.y, font->width, font->height};
+  SDL_Rect rect = { cursor->x*font->width*scale - origin.x, cursor->y*font->height*scale - origin.y, font->width*scale, font->height*scale};
   SDL_SetRenderDrawColor(rend, decode(FONT_COLOR));
   SDL_RenderFillRect(rend, &rect);
 
   //DRAW CHAR BEHIND CURSOR
   if(cursor->pos<buffer->buffer_size) {
     font_render_char(rend, font,
-		     vec(cursor->x*font->width - origin.x,
-			 cursor->y*font->height - origin.y),
-		     buffer->buffer[cursor->pos], 1.0, BG_COLOR);        
+		     vec(cursor->x*font->width*scale - origin.x,
+			 cursor->y*font->height*scale - origin.y),
+		     buffer->buffer[cursor->pos], scale, BG_COLOR);        
   }
 
   //RENDER BACKGROUND
@@ -136,12 +140,26 @@ void key_ctrl(size_t keycode, bool on) {
   }
 }
 
-void key_down(Buffer *buffer, Cursor *cursor, size_t keycode, const char* file_path) {
+void key_down(Buffer *buffer, Cursor *cursor, Font *font, SDL_Renderer *rend, size_t keycode, const char* file_path) {
   //printf("Pressed %lld\n", keycode);
   size_t size, start, end;
   char* content;
   if(ctrl) {
     switch(keycode) {
+    case'-':
+      font_close(font);
+      font_size -= 2;
+      font_init(font, rend, FONT_PATH, font_size);
+      height = HEIGHT / font->height;
+      width = WIDTH / font->width;      
+      break;
+    case'+':
+      font_close(font);
+      font_size += 2;
+      font_init(font, rend, FONT_PATH, font_size);
+      height = HEIGHT / font->height;
+      width = WIDTH / font->width;
+      break;
     case 'g':
       cursor_reset(cursor);
       break;
@@ -319,7 +337,7 @@ int main(int argc, char **argv) {
       break;
     case SDL_KEYDOWN:
       key_ctrl(event.key.keysym.sym, true);
-      key_down(&buffer, &cursor, event.key.keysym.sym, argv[1]);
+      key_down(&buffer, &cursor, &font, rend, event.key.keysym.sym, argv[1]);
       break;
     case SDL_KEYUP:
       key_ctrl(event.key.keysym.sym, false);      

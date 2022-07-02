@@ -1,5 +1,5 @@
 all:
-	gcc main.c vec.c sdl_c.c font.c buffer.c -Wall -Wextra -Wshadow -pedantic -lfreetype -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lfreetype -o main
+	gcc ./src/main.c ./src/vec.c ./src/sdl_c.c ./src/font.c ./src/buffer.c -Wall -Wextra -Wshadow -pedantic -lfreetype -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lfreetype -o main
 
 prod:
-	gcc main.c vec.c sdl_c.c font.c buffer.c -Wall -Wextra -Wshadow -pedantic -lfreetype -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lfreetype -o main -mwindows
+	gcc ./src/main.c ./src/vec.c ./src/sdl_c.c ./src/font.c ./src/buffer.c -Wall -Wextra -Wshadow -pedantic -lfreetype -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lfreetype -o main -mwindows

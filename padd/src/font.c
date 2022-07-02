@@ -8,7 +8,7 @@ void font_init(Font *f, SDL_Renderer *rend, const char* path, size_t font_size) 
     SDL_Color white = {decode(0xffffffff)};
 
     SDL_Surface *surface =
-        scp(TTF_RenderText_Blended(font, alphabet, white));
+        scp(TTF_RenderUTF8_Blended(font, alphabet, white));
 
     SDL_Texture *texture =
         scp(SDL_CreateTextureFromSurface(rend, surface));
