@@ -1,22 +1,31 @@
 Thema
 	Damals: AlexNet (11x11, 5x5, overlapping Pooling)
-	
-	Simplizität: 	einfaches Design => später
-			kleine Filter => dafür mehr Filter
 
 	=> Struktur erklären ?
 
 Idee
 	Visual Geometry Group, Oxford, 2015
 
+<<<<<<< HEAD
 	Tiefe steigern
 	Im Block bleibt die Hoehe + Breite gleich
 	MaxPooling halbiert Hoehe + Breite
+=======
+	VGG ist eine Architektur/ Familie von Netzwerken
+
+	Tiefe steigern
+>>>>>>> 8f0beacf988d09b003cf88b7beb48bdbc5092501
 	ReLU
 	Lieber mehr kleine Filter als einzelne große
 
 Aufgaben/ Einsatz
 	Ist erfoglreich !!!!!
+<<<<<<< HEAD
+=======
+	ImageNet 2014 die beste Architektur nach GoogleNet
+
+	Auch sonst eine erfolgreiche Architektur
+>>>>>>> 8f0beacf988d09b003cf88b7beb48bdbc5092501
 
 Architektur
 	VGG ist eine Familie von Netzwerken
@@ -25,6 +34,17 @@ Architektur
 	Merkmalsextraktion + klassisches, dazwischen Flatten
 
 	Input ist 3 dimensional, RGB
+<<<<<<< HEAD
+=======
+	Ein Volumen wird gefalten, keine Fläche
+	Dimensionen erklären ?
+
+	224x224x3 = 150 528
+
+	56 x 56 x 256 = 802 816
+
+	7x7x512    = 25 088
+>>>>>>> 8f0beacf988d09b003cf88b7beb48bdbc5092501
 	
 	Breite und Hoehe wird beibehalten
 	Max-Pooling halbiert die Breite und Hoehe
@@ -34,6 +54,10 @@ Architektur
 	Softmax wird für die Klassifizierung genutzt
 
 	Großes Netzwerk auch für heutige Standarts
+<<<<<<< HEAD
+=======
+	VGG16 mit 134M parametern
+>>>>>>> 8f0beacf988d09b003cf88b7beb48bdbc5092501
 
 Architekturarten
 	Von oben nach zu unten lesen
@@ -52,9 +76,18 @@ Architekturarten
 			conv1-256 := 1x1 Filter
 				Wird genutzt um die Feature-Maps/ Volumen zu verändern
 
+<<<<<<< HEAD
 Convolutional Layers
 	2d - Filter läuft 2d über das Volumen
 		Filter haben die selbe Tiefe wie das Input
+=======
+	LRN!!!!!!!!!!!!!!!!!!! am Ende
+
+Convolutional Layers
+	2d - Filter läuft 2d über das Volumen
+		Bild mit RGB oder Feature Maps
+	Filter haben die selbe Tiefe wie das Input
+>>>>>>> 8f0beacf988d09b003cf88b7beb48bdbc5092501
 
 	ReLU
 	
@@ -141,6 +174,10 @@ Training
 	
 	Training hat optimale Genauigkeit erzielt und wird von den Autoren so vorgeschlagen
 
+<<<<<<< HEAD
+=======
+	Training ist aufwendig, wegen der Tiefe des Netzes
+>>>>>>> 8f0beacf988d09b003cf88b7beb48bdbc5092501
 	Teilweise hat man VGG16 mit den Gewichten von VGG13 trainiert, Speed-up
 
 Optimierung durch
@@ -152,6 +189,10 @@ Optimierung durch
 	Dropout
 		temporär Verbindungen entfernen und hinzufügen
 		Das Netz kann sich nicht auf einzelne Neuronen verlassen
+<<<<<<< HEAD
+=======
+		Wird in der Praxis gerne gemacht
+>>>>>>> 8f0beacf988d09b003cf88b7beb48bdbc5092501
 		Overfitting wird vermieden
 
 	L2-Regularization
