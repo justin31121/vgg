@@ -27,10 +27,8 @@ void buffer_init(Buffer *buffer);
 void buffer_quit(Buffer *buffer);
 
 typedef struct{
-  size_t x, y;
+  size_t x, y, i, j;
   size_t pos;
-
-  size_t i, j;
 }Cursor;
 
 void cursor_log(const Cursor *cursor);

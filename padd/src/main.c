@@ -8,16 +8,17 @@
 
 #define BG_COLOR 0x202020ff
 #define FONT_COLOR 0xffffffff
+#define FONT_DARKER_COLOR 0xaaaaaaff
 #define HG_COLOR 0x606060ff
 
 #define WIDTH 800
 #define HEIGHT 600
 
-#define PAD_LEFT 10
-#define PAD_TOP 10
+#define PAD_LEFT 25
+#define PAD_TOP 5
 
 #define FONT_PATH "./rsc/consola.ttf"
-#define FONT_SIZE 32
+#define FONT_SIZE 24
 
 #define ENTER 10
 #define TAB_WIDTH 4
@@ -41,7 +42,13 @@ void render(SDL_Renderer *rend, Font *font, Buffer *buffer, const Cursor *cursor
 
   float scale = 1.0;
 
-  Vec origin = vec(x*font->width, y*font->height);
+  buffer_process_lines(buffer);
+  
+  float offset = 3;
+  size_t f = buffer->lines_size;
+  while((f=f/10)>0) offset++;
+
+  Vec origin = vec((x*font->width) - offset * font->width, y*font->height - (float) PAD_TOP);
   
   //DRAW HIGHLIHGTED TEXT
   Vec pos = vec(cursor->x, cursor->y);
@@ -54,15 +61,15 @@ void render(SDL_Renderer *rend, Font *font, Buffer *buffer, const Cursor *cursor
     for(int i=min.y;i<=max.y;i++) {
       float x1;
       if(i==min.y) {
-	x1 = min.x;
+ x1 = min.x;
       }
       else {
-	x1 = 0;
+ x1 = 0;
       }
 
       float x2 = width;
       if(i==max.y) {
-	x2 = max.x - x1;
+ x2 = max.x - x1;
       }
 
       SDL_Rect temp = {x1*font->width - origin.x, i*font->height - origin.y, x2*font->width, font->height};
@@ -72,11 +79,17 @@ void render(SDL_Renderer *rend, Font *font, Buffer *buffer, const Cursor *cursor
   }
 
   //DRAW BUFFER
-  buffer_process_lines(buffer);
+  int k = 1;
   for(size_t i=y;i<buffer->lines_size;i++) {
+    //DRAW TEXT
     font_render_text_sized(rend, font, vec(0 - origin.x, i*font->height*scale - origin.y),
-			   buffer->buffer + buffer->positions[i], buffer->lines[i],
-			   scale, FONT_COLOR);
+      buffer->buffer + buffer->positions[i], buffer->lines[i],
+      scale, FONT_COLOR);
+    //DRAW LINE
+    font_render_char(rend, font, vec(0 - origin.x - 2*font->width,i*font->height*scale - origin.y),
+      k + '0',
+      scale , FONT_DARKER_COLOR);
+    k++;
   }
   
   //DRAW CURSOR
@@ -87,9 +100,9 @@ void render(SDL_Renderer *rend, Font *font, Buffer *buffer, const Cursor *cursor
   //DRAW CHAR BEHIND CURSOR
   if(cursor->pos<buffer->buffer_size) {
     font_render_char(rend, font,
-		     vec(cursor->x*font->width*scale - origin.x,
-			 cursor->y*font->height*scale - origin.y),
-		     buffer->buffer[cursor->pos], scale, BG_COLOR);        
+       vec(cursor->x*font->width*scale - origin.x,
+    cursor->y*font->height*scale - origin.y),
+       buffer->buffer[cursor->pos], scale, BG_COLOR);        
   }
 
   //RENDER BACKGROUND
@@ -97,22 +110,42 @@ void render(SDL_Renderer *rend, Font *font, Buffer *buffer, const Cursor *cursor
   SDL_RenderPresent(rend);
 }
 
+//void render(SDL_Renderer *rend, Font *font, Buffer *buffer, const Cursor *cursor) {
+typedef struct{
+  SDL_Window *wind;
+  SDL_Renderer *rend;
+  Font *font;
+  Buffer *buffer;
+  Cursor *cursor;
+}PassingStruct;
+
+static int resizingEventWatcher(void* data, SDL_Event* event) {
+  if (event->type == SDL_WINDOWEVENT &&
+      event->window.event == SDL_WINDOWEVENT_RESIZED) {
+    SDL_Window* win = SDL_GetWindowFromID(event->window.windowID);
+    PassingStruct* p = (PassingStruct*)data;
+    if (win == p->wind) {
+      render(p->rend, p->font, p->buffer, p->cursor);
+
+      int w, h;
+      SDL_GetWindowSize(p->wind, &w, &h);
+      
+      width = w / p->font->width;
+      height = h / p->font->height;
+    }
+  }
+  return 0;
+}
+
 void window_fit(const Buffer *buffer, const Cursor *cursor) {
   (void) buffer;
 
-  if(cursor->y>=y+height) {
-    y++;
-  }
-  else if(cursor->y<y) {
-    y--;
-  }
 
-  if(cursor->x>=width+x) {
-    x++;
-  }
-  else if(cursor->x<x) {
-    x--;
-  }
+  while(cursor->y>=y+height) y++;
+  while(cursor->y<y) y--;
+
+  while(cursor->x>=x+width-2) x++;
+  while(cursor->x<x) x--;
 }
 
 void key_ctrl(size_t keycode, bool on) {
@@ -171,16 +204,16 @@ void key_down(Buffer *buffer, Cursor *cursor, Font *font, SDL_Renderer *rend, si
     case 'w':
       size = cursor_dist(cursor, buffer, &start, &end);
       if(size!=0) {
-	//COPY TO CLIPBOARD
-	char text[size+1];
-	memcpy(text, buffer->buffer + start, end - 1);
-	text[size] = 0;
-	
-	if(SDL_SetClipboardText(text)!=0) {
-	  printf("Cant copy text\n");	  
-	}
-	cursor_outer(cursor, buffer);
-	buffer_delete(buffer, cursor, size);
+ //COPY TO CLIPBOARD
+ char text[size+1];
+ memcpy(text, buffer->buffer + start, size);
+ text[size] = 0;
+ 
+ if(SDL_SetClipboardText(text)!=0) {
+   printf("Cant copy text\n");   
+ }
+ cursor_outer(cursor, buffer);
+ buffer_delete(buffer, cursor, size);
       }
       break;
     case 'k':
@@ -200,12 +233,12 @@ void key_down(Buffer *buffer, Cursor *cursor, Font *font, SDL_Renderer *rend, si
     case 'd':
       size = cursor_dist(cursor, buffer, NULL, NULL);
       if(size==0) {
-	cursor_right(cursor, buffer, 1, false);
-	buffer_delete(buffer, cursor, 1);
+ cursor_right(cursor, buffer, 1, false);
+ buffer_delete(buffer, cursor, 1);
       }
       else {
-	cursor_outer(cursor, buffer);
-	buffer_delete(buffer, cursor, size);
+ cursor_outer(cursor, buffer);
+ buffer_delete(buffer, cursor, size);
       }
       
       break;      
@@ -231,14 +264,14 @@ void key_down(Buffer *buffer, Cursor *cursor, Font *font, SDL_Renderer *rend, si
     case 'w':
       size = cursor_dist(cursor, buffer, &start, &end);
       if(size!=0) {
-	//COPY TO CLIPBOARD
-	char text[size+1];
-	memcpy(text, buffer->buffer + start, end);
-	text[size] = 0;
-	
-	if(SDL_SetClipboardText(text)!=0) {
-	  printf("Cant copy text\n");	  
-	}
+ //COPY TO CLIPBOARD
+ char text[size+1];
+ memcpy(text, buffer->buffer + start, end);
+ text[size] = 0;
+ 
+ if(SDL_SetClipboardText(text)!=0) {
+   printf("Cant copy text\n");   
+ }
       }
       break;
     default:
@@ -306,19 +339,19 @@ int main(int argc, char **argv) {
   
   SDL_Window *wind =
     scp(SDL_CreateWindow(
-			 "Editor",
-			 SDL_WINDOWPOS_CENTERED,
-			 SDL_WINDOWPOS_CENTERED,
-			 WIDTH, HEIGHT,
-			 SDL_WINDOW_RESIZABLE
-			 ));
+    "Editor",
+    SDL_WINDOWPOS_CENTERED,
+    SDL_WINDOWPOS_CENTERED,
+    WIDTH, HEIGHT,
+    SDL_WINDOW_RESIZABLE
+    ));
 
   SDL_Renderer *rend =
     scp(SDL_CreateRenderer(
-			   wind,
-			   -1,
-			   SDL_RENDERER_SOFTWARE
-			   ));
+      wind,
+      -1,
+      SDL_RENDERER_SOFTWARE
+      ));
   Font font;
   font_init(&font, rend, FONT_PATH, FONT_SIZE);
 
@@ -327,6 +360,9 @@ int main(int argc, char **argv) {
 
   SDL_Event event;
   size_t d;
+
+  PassingStruct s = {wind, rend, &font, &buffer, &cursor};
+  SDL_AddEventWatch(resizingEventWatcher, &s);
   
   while(running) {
     SDL_WaitEvent(&event);
@@ -345,17 +381,18 @@ int main(int argc, char **argv) {
     case SDL_TEXTINPUT:
       d = cursor_dist(&cursor, &buffer, NULL, NULL);
       if(d!=0) {
-	cursor_outer(&cursor, &buffer);
-	buffer_delete(&buffer, &cursor, d);
+ cursor_outer(&cursor, &buffer);
+ buffer_delete(&buffer, &cursor, d);
       }
       buffer_insert(&buffer, &cursor, event.text.text);
+      window_fit(&buffer, &cursor);
       break;
     case SDL_MOUSEWHEEL:
       if(event.wheel.y>0) {
-	y = y > 0 ? (y-1) : 0;
+ y = y > 0 ? (y-1) : 0;
       }
       else if(event.wheel.y<0){
-	y++;
+ y++;
       }
       break;
     case SDL_MOUSEMOTION:
@@ -364,18 +401,18 @@ int main(int argc, char **argv) {
       drag = true;
       cursor_reset(&cursor);
       if(event.button.button==SDL_BUTTON_LEFT) {
-	cursor_click(&cursor, &buffer,
-		     event.button.x + x*font.width,
-		     event.button.y + y*font.height ,
-		     font.width, font.height, false);
+ cursor_click(&cursor, &buffer,
+       event.button.x + x*font.width - 2.0*font.width,
+       event.button.y + y*font.height - PAD_TOP,
+       font.width, font.height, false);
       }
       break;
     case SDL_MOUSEBUTTONUP:
       if(event.button.button==SDL_BUTTON_LEFT) {
-	cursor_click(&cursor, &buffer,
-		     event.button.x + x*font.width,
-		     event.button.y + y*font.height,
-		     font.width, font.height, true);
+ cursor_click(&cursor, &buffer,
+       event.button.x + x*font.width - 2.0*font.width,
+       event.button.y + y*font.height - PAD_TOP,
+       font.width, font.height, true);
 
       }
       drag = false;
