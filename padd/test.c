@@ -1,10 +1,7 @@
 #include <stdio.h>
 
-void foo() {
-    printf("yoyooyoyoyo\n");
-}
-
 int main() {
-    printf("hello, world\n");
+    if(
+    printf("hsdfasd\n");
     return 0;
 }

@@ -1,7 +1,8 @@
 #include "./font.h"
 
 void font_init(Font *f, SDL_Renderer *rend, const char* path, size_t font_size) {
-    const char alphabet[] = " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+    const char alphabet[] = 
+     " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
   
     TTF_Font *font = stcp(TTF_OpenFont(path, font_size));
 
@@ -38,7 +39,7 @@ void font_close(Font *font) {
 }
 
 float font_render_char(SDL_Renderer *rend, const Font *font, Vec pos, char c, float scale,
-		  Uint32 color) {
+    Uint32 color) {
 
   if(c<ASCII_LOW) {
     return 0.0;
