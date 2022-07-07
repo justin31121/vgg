@@ -10,6 +10,7 @@
 #define FONT_COLOR 0xffffffff
 #define FONT_DARKER_COLOR 0xaaaaaaff
 #define HG_COLOR 0x606060ff
+#define YELLOW 0xf1d302ff
 
 #define WIDTH 800
 #define HEIGHT 600
@@ -37,7 +38,54 @@ bool shift = false;
 bool alt = false;
 bool drag = false;
 
-void render(SDL_Renderer *rend, Font *font, Buffer *buffer, const Cursor *cursor) {
+void load_number_in_buffer(int n, char *buffer, int size) {  
+  for(int i=size-2;i>=0;i--) {
+    int m = n % 10;
+    if(n>0) {
+      buffer[i] = m +  '0';
+    }
+    else {
+      buffer[i] = ' ';
+    }
+    n = n/10;
+  }
+}
+
+bool line_eol(char *buffer, size_t len, bool *special, size_t *start, size_t *end) {
+  char if_buffer[] = "if";
+  size_t if_buffer_len = 2;
+  if(start) *start=0;
+
+  for(size_t i=0;(i+if_buffer_len)<=len;i++) {
+    bool candidate = true;
+    for(size_t j=0;j<if_buffer_len;j++) {
+      if(buffer[i+j]!=if_buffer[j]) {
+	candidate = false;
+	break;
+      }
+    }
+    printf("candidate ?: %d\n", candidate);
+    if(candidate) {
+      if(i==0) {
+	if(end) *end=if_buffer_len;
+	if(special) *special=true;	
+      }
+      else {
+	if(end) *end=i;
+	if(special) *special=false;
+      }      
+      return false;
+    }
+  }
+
+  if(end) *end=len;
+  if(special) *special=false;  
+  return true;
+}
+
+long tick = 0;
+
+void render(SDL_Renderer *rend, Font *font, Buffer *buffer, const Cursor *cursor, bool c) {
   SDL_RenderClear(rend);
 
   float scale = 1.0;
@@ -61,15 +109,15 @@ void render(SDL_Renderer *rend, Font *font, Buffer *buffer, const Cursor *cursor
     for(int i=min.y;i<=max.y;i++) {
       float x1;
       if(i==min.y) {
- x1 = min.x;
+	x1 = min.x;
       }
       else {
- x1 = 0;
+	x1 = 0;
       }
 
       float x2 = width;
       if(i==max.y) {
- x2 = max.x - x1;
+	x2 = max.x - x1;
       }
 
       SDL_Rect temp = {x1*font->width - origin.x, i*font->height - origin.y, x2*font->width, font->height};
@@ -79,31 +127,61 @@ void render(SDL_Renderer *rend, Font *font, Buffer *buffer, const Cursor *cursor
   }
 
   //DRAW BUFFER
-  int k = 1;
+  int off = ((int) offset) - 1;
+  char number_buffer[off];
+  number_buffer[off-1] = 0;
+  size_t k = y+1;
   for(size_t i=y;i<buffer->lines_size;i++) {
     //DRAW TEXT
+    size_t end=0;
+    size_t start=0;
+    bool special = false;
+    bool eol;
+    while(true) {
+      eol = line_eol(buffer->buffer + buffer->positions[i] + end, buffer->lines[i], &special, &start, &end);
+
+      printf("[%lld] (%lld - %lld): %d\n", y, start, end, special);
+
+      Uint32 color = special ? YELLOW : FONT_COLOR;
+      font_render_text_sized(rend, font, vec(0 - origin.x + start*font->width, i*font->height*scale - origin.y),
+			     buffer->buffer + buffer->positions[i] + start, (end - start), scale, color);      
+       
+      if(eol) {
+	break;
+      }
+    }
+
+    /*
     font_render_text_sized(rend, font, vec(0 - origin.x, i*font->height*scale - origin.y),
-      buffer->buffer + buffer->positions[i], buffer->lines[i],
-      scale, FONT_COLOR);
+			   buffer->buffer + buffer->positions[i], buffer->lines[i],
+			   scale, FONT_COLOR);
+    */
     //DRAW LINE
-    font_render_char(rend, font, vec(0 - origin.x - 2*font->width,i*font->height*scale - origin.y),
-      k + '0',
-      scale , FONT_DARKER_COLOR);
+    load_number_in_buffer(k, number_buffer, off);
+    Uint32 color = FONT_DARKER_COLOR;
+    if(k==cursor->y+1) {
+      color = YELLOW;
+    }
+    font_render_text_sized(rend, font, vec(0 - origin.x -  off*font->width, i*font->height*scale - origin.y),
+			   number_buffer, offset-1,
+			   scale, color);
     k++;
   }
   
   //DRAW CURSOR
-  SDL_Rect rect = { cursor->x*font->width*scale - origin.x, cursor->y*font->height*scale - origin.y, font->width*scale, font->height*scale};
-  SDL_SetRenderDrawColor(rend, decode(FONT_COLOR));
-  SDL_RenderFillRect(rend, &rect);
-
-  //DRAW CHAR BEHIND CURSOR
-  if(cursor->pos<buffer->buffer_size) {
-    font_render_char(rend, font,
-       vec(cursor->x*font->width*scale - origin.x,
-    cursor->y*font->height*scale - origin.y),
-       buffer->buffer[cursor->pos], scale, BG_COLOR);        
+  if(c) {
+    SDL_Rect rect = { cursor->x*font->width*scale - origin.x, cursor->y*font->height*scale - origin.y, font->width*scale, font->height*scale};
+    SDL_SetRenderDrawColor(rend, decode(YELLOW));
+    SDL_RenderFillRect(rend, &rect);
+    //DRAW CHAR BEHIND CURSOR
+    if(cursor->pos<buffer->buffer_size) {
+      font_render_char(rend, font,
+		       vec(cursor->x*font->width*scale - origin.x,
+			   cursor->y*font->height*scale - origin.y),
+		       buffer->buffer[cursor->pos], scale, BG_COLOR);        
+    }
   }
+  
 
   //RENDER BACKGROUND
   SDL_SetRenderDrawColor(rend, decode(BG_COLOR));
@@ -125,7 +203,7 @@ static int resizingEventWatcher(void* data, SDL_Event* event) {
     SDL_Window* win = SDL_GetWindowFromID(event->window.windowID);
     PassingStruct* p = (PassingStruct*)data;
     if (win == p->wind) {
-      render(p->rend, p->font, p->buffer, p->cursor);
+      render(p->rend, p->font, p->buffer, p->cursor, true);
 
       int w, h;
       SDL_GetWindowSize(p->wind, &w, &h);
@@ -204,16 +282,16 @@ void key_down(Buffer *buffer, Cursor *cursor, Font *font, SDL_Renderer *rend, si
     case 'w':
       size = cursor_dist(cursor, buffer, &start, &end);
       if(size!=0) {
- //COPY TO CLIPBOARD
- char text[size+1];
- memcpy(text, buffer->buffer + start, size);
- text[size] = 0;
+	//COPY TO CLIPBOARD
+	char text[size+1];
+	memcpy(text, buffer->buffer + start, size);
+	text[size] = 0;
  
- if(SDL_SetClipboardText(text)!=0) {
-   printf("Cant copy text\n");   
- }
- cursor_outer(cursor, buffer);
- buffer_delete(buffer, cursor, size);
+	if(SDL_SetClipboardText(text)!=0) {
+	  printf("Cant copy text\n");   
+	}
+	cursor_outer(cursor, buffer);
+	buffer_delete(buffer, cursor, size);
       }
       break;
     case 'k':
@@ -233,12 +311,12 @@ void key_down(Buffer *buffer, Cursor *cursor, Font *font, SDL_Renderer *rend, si
     case 'd':
       size = cursor_dist(cursor, buffer, NULL, NULL);
       if(size==0) {
- cursor_right(cursor, buffer, 1, false);
- buffer_delete(buffer, cursor, 1);
+	cursor_right(cursor, buffer, 1, false);
+	buffer_delete(buffer, cursor, 1);
       }
       else {
- cursor_outer(cursor, buffer);
- buffer_delete(buffer, cursor, size);
+	cursor_outer(cursor, buffer);
+	buffer_delete(buffer, cursor, size);
       }
       
       break;      
@@ -264,14 +342,14 @@ void key_down(Buffer *buffer, Cursor *cursor, Font *font, SDL_Renderer *rend, si
     case 'w':
       size = cursor_dist(cursor, buffer, &start, &end);
       if(size!=0) {
- //COPY TO CLIPBOARD
- char text[size+1];
- memcpy(text, buffer->buffer + start, end);
- text[size] = 0;
+	//COPY TO CLIPBOARD
+	char text[size+1];
+	memcpy(text, buffer->buffer + start, end);
+	text[size] = 0;
  
- if(SDL_SetClipboardText(text)!=0) {
-   printf("Cant copy text\n");   
- }
+	if(SDL_SetClipboardText(text)!=0) {
+	  printf("Cant copy text\n");   
+	}
       }
       break;
     default:
@@ -339,19 +417,19 @@ int main(int argc, char **argv) {
   
   SDL_Window *wind =
     scp(SDL_CreateWindow(
-    "Editor",
-    SDL_WINDOWPOS_CENTERED,
-    SDL_WINDOWPOS_CENTERED,
-    WIDTH, HEIGHT,
-    SDL_WINDOW_RESIZABLE
-    ));
+			 "Editor",
+			 SDL_WINDOWPOS_CENTERED,
+			 SDL_WINDOWPOS_CENTERED,
+			 WIDTH, HEIGHT,
+			 SDL_WINDOW_RESIZABLE
+			 ));
 
   SDL_Renderer *rend =
     scp(SDL_CreateRenderer(
-      wind,
-      -1,
-      SDL_RENDERER_SOFTWARE
-      ));
+			   wind,
+			   -1,
+			   SDL_RENDERER_SOFTWARE
+			   ));
   Font font;
   font_init(&font, rend, FONT_PATH, FONT_SIZE);
 
@@ -363,9 +441,15 @@ int main(int argc, char **argv) {
 
   PassingStruct s = {wind, rend, &font, &buffer, &cursor};
   SDL_AddEventWatch(resizingEventWatcher, &s);
-  
+
+  Uint32 lasttime = SDL_GetTicks();
+  Uint32 lastaction = lasttime;
+  Uint32 currenttime;
+  bool show = true;
+  bool last = show;
   while(running) {
-    SDL_WaitEvent(&event);
+    SDL_PollEvent(&event);
+    bool action = true;
 
     switch(event.type) {
     case SDL_QUIT:
@@ -381,18 +465,18 @@ int main(int argc, char **argv) {
     case SDL_TEXTINPUT:
       d = cursor_dist(&cursor, &buffer, NULL, NULL);
       if(d!=0) {
- cursor_outer(&cursor, &buffer);
- buffer_delete(&buffer, &cursor, d);
+	cursor_outer(&cursor, &buffer);
+	buffer_delete(&buffer, &cursor, d);
       }
       buffer_insert(&buffer, &cursor, event.text.text);
       window_fit(&buffer, &cursor);
       break;
     case SDL_MOUSEWHEEL:
       if(event.wheel.y>0) {
- y = y > 0 ? (y-1) : 0;
+	y = y > 0 ? (y-1) : 0;
       }
       else if(event.wheel.y<0){
- y++;
+	y++;
       }
       break;
     case SDL_MOUSEMOTION:
@@ -401,25 +485,45 @@ int main(int argc, char **argv) {
       drag = true;
       cursor_reset(&cursor);
       if(event.button.button==SDL_BUTTON_LEFT) {
- cursor_click(&cursor, &buffer,
-       event.button.x + x*font.width - 2.0*font.width,
-       event.button.y + y*font.height - PAD_TOP,
-       font.width, font.height, false);
+	cursor_click(&cursor, &buffer,
+		     event.button.x + x*font.width - 2.0*font.width,
+		     event.button.y + y*font.height - PAD_TOP,
+		     font.width, font.height, false);
       }
       break;
     case SDL_MOUSEBUTTONUP:
       if(event.button.button==SDL_BUTTON_LEFT) {
- cursor_click(&cursor, &buffer,
-       event.button.x + x*font.width - 2.0*font.width,
-       event.button.y + y*font.height - PAD_TOP,
-       font.width, font.height, true);
+	cursor_click(&cursor, &buffer,
+		     event.button.x + x*font.width - 2.0*font.width,
+		     event.button.y + y*font.height - PAD_TOP,
+		     font.width, font.height, true);
 
       }
       drag = false;
       break;
+    default:
+      action = false;
+      break;
     }
 
-    render(rend, &font, &buffer, &cursor);
+    currenttime = SDL_GetTicks();
+    if(action) {
+      lastaction = currenttime;
+      lasttime = currenttime;
+      show = true;
+    }
+    if(currenttime > lasttime + 400) {
+      show = show ? false : true;
+      lasttime = currenttime;
+    }
+    if(currenttime > lastaction + 4000) {
+      show = true;
+    }
+
+    if(action || show!=last) {
+      render(rend, &font, &buffer, &cursor, show);
+      last = show;
+    }
   }
 
   SDL_DestroyRenderer(rend);
