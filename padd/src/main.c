@@ -1,4 +1,5 @@
-#include <stdbool.h>
+#include <pthread.h>
+#include <windows.h>
 
 #include "./sdl_c.h"
 #include "./font.h"
@@ -19,8 +20,8 @@
 #define PAD_LEFT 25
 #define PAD_TOP 5
 
-#define FONT_PATH "./rsc/iosevka-regular.ttf"
-#define FONT_SIZE 24
+#define FONT_PATH "./rsc/iosevka-regular.ttf" //"./rsc/consola.ttf"
+#define FONT_SIZE 18
 
 #define ENTER 10
 #define TAB_WIDTH 4
@@ -69,22 +70,22 @@ bool line_eol(char *buffer, size_t len, int *color, size_t *end) {
       bool candidate = true;
       if(i+keywords_len[k]>len) continue;
       for(size_t j=0;j<keywords_len[k];j++) {
- if(buffer[i+j]!=keywords[k][j]) {
-   candidate = false;
-   break;
- }
+	if(buffer[i+j]!=keywords[k][j]) {
+	  candidate = false;
+	  break;
+	}
       }
       if(candidate) {
- if(i==0) {
-   if(end) *end=keywords_len[k];
-   if(color) *color=keywords_colors[k];
-   return keywords_len[k]==len;
- }
- else {
-   if(end) *end=i;
-   if(color) *color=0;
-   return i==len-1;
- }      
+	if(i==0) {
+	  if(end) *end=keywords_len[k];
+	  if(color) *color=keywords_colors[k];
+	  return keywords_len[k]==len;
+	}
+	else {
+	  if(end) *end=i;
+	  if(color) *color=0;
+	  return i==len-1;
+	}      
       }
     }
   }
@@ -95,7 +96,7 @@ bool line_eol(char *buffer, size_t len, int *color, size_t *end) {
 }
 
 #define INTERVAL_CAP 64
-#define LINE_CAP 128
+#define LINE_CAP 256
 
 typedef struct{
   size_t start, end;
@@ -115,6 +116,11 @@ typedef struct{
 
 Text text = {0};
 
+bool isText(char *d) {
+  char c = d[0];
+  return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+}
+
 void text_update(const Buffer *buffer, const Cursor *cursor) {
   (void) cursor;
   text.lines_count = 0;
@@ -128,7 +134,15 @@ void text_update(const Buffer *buffer, const Cursor *cursor) {
     bool eol;
     while(true) {
       eol = line_eol(buffer->buffer+buffer->positions[i] + acc, buffer->lines[i] - acc, &special, &end);
-      
+
+      if(special) {
+	if(acc>0 && isText(buffer->buffer + buffer->positions[i] + (acc-1))) {
+	  special = 0;
+	}
+	if((acc+end-1<buffer->lines[i]) && isText(buffer->buffer + buffer->positions[i] + (acc+end))) {
+	  special = 0;
+	}
+      }
       Uint32 color = colors[special];
       //ADD INTERVAL
       Interval inter;
@@ -140,7 +154,7 @@ void text_update(const Buffer *buffer, const Cursor *cursor) {
       acc+=end;
           
       if(eol) {
- break;
+	break;
       }
     }
 
@@ -170,15 +184,15 @@ void render(SDL_Renderer *rend, Font *font, Buffer *buffer, const Cursor *cursor
     for(int i=min.y;i<=max.y;i++) {
       float x1;
       if(i==min.y) {
- x1 = min.x;
+	x1 = min.x;
       }
       else {
- x1 = 0;
+	x1 = 0;
       }
 
       float x2 = width;
       if(i==max.y) {
- x2 = max.x - x1;
+	x2 = max.x - x1;
       }
 
       SDL_Rect temp = {x1*font->width - origin.x, i*font->height - origin.y, x2*font->width, font->height};
@@ -200,8 +214,8 @@ void render(SDL_Renderer *rend, Font *font, Buffer *buffer, const Cursor *cursor
       Interval inter = line.intervals[j];
       if(inter.end==0) continue;
       font_render_text_sized(rend, font, vec(inter.start*font->width - origin.x, (line.line)*font->height*scale - origin.y),
-        buffer->buffer + buffer->positions[line.line] + inter.start, inter.end,
-        scale, inter.color);
+			     buffer->buffer + buffer->positions[line.line] + inter.start, inter.end,
+			     scale, inter.color);
     }
 
     //DRAW LINE
@@ -211,26 +225,27 @@ void render(SDL_Renderer *rend, Font *font, Buffer *buffer, const Cursor *cursor
       color = YELLOW;
     }
     font_render_text_sized(rend, font, vec(0 - origin.x -  off*font->width, (i+y)*font->height*scale - origin.y),
-      number_buffer, offset-1,
-      scale, color);
+			   number_buffer, offset-1,
+			   scale, color);
     k++;
   }
   
   //DRAW CURSOR
   if(c) {
-    SDL_Rect rect = { cursor->x*font->width*scale - origin.x, cursor->y*font->height*scale - origin.y, font->width*scale, font->height*scale};
+    SDL_Rect rect = {
+      cursor->x*font->width*scale - origin.x,
+      cursor->y*font->height*scale - origin.y,
+      font->width*scale, font->height*scale};
     SDL_SetRenderDrawColor(rend, decode(YELLOW));
     SDL_RenderFillRect(rend, &rect);
     //DRAW CHAR BEHIND CURSOR
     if(cursor->pos<buffer->buffer_size) {
       font_render_char(rend, font,
-         vec(cursor->x*font->width*scale - origin.x,
-      cursor->y*font->height*scale - origin.y),
-         buffer->buffer[cursor->pos], scale, BG_COLOR);        
+		       vec(cursor->x*font->width*scale - origin.x,
+			   cursor->y*font->height*scale - origin.y),
+		       buffer->buffer[cursor->pos], scale, BG_COLOR);   
     }
   }
-
-  
 
   //RENDER BACKGROUND
   SDL_SetRenderDrawColor(rend, decode(BG_COLOR));
@@ -244,6 +259,7 @@ typedef struct{
   Font *font;
   Buffer *buffer;
   Cursor *cursor;
+  Uint32 *lasttime;
 }PassingStruct;
 
 static int resizingEventWatcher(void* data, SDL_Event* event) {
@@ -251,6 +267,7 @@ static int resizingEventWatcher(void* data, SDL_Event* event) {
       event->window.event == SDL_WINDOWEVENT_RESIZED) {
     SDL_Window* win = SDL_GetWindowFromID(event->window.windowID);
     PassingStruct* p = (PassingStruct*)data;
+    *p->lasttime = SDL_GetTicks();
     if (win == p->wind) {
       render(p->rend, p->font, p->buffer, p->cursor, true);
 
@@ -331,17 +348,17 @@ void key_down(Buffer *buffer, Cursor *cursor, Font *font, SDL_Renderer *rend, si
     case 'w':
       size = cursor_dist(cursor, buffer, &start, &end);
       if(size!=0) {
- //COPY TO CLIPBOARD
- char copy_content[size+1];
- memcpy(copy_content, buffer->buffer + start, size);
- copy_content[size] = 0;
+	//COPY TO CLIPBOARD
+	char copy_content[size+1];
+	memcpy(copy_content, buffer->buffer + start, size);
+	copy_content[size] = 0;
  
- if(SDL_SetClipboardText(copy_content)!=0) {
-   printf("Cant copy text\n");   
- }
- cursor_outer(cursor, buffer);
- buffer_delete(buffer, cursor, size);
- buffer_process_lines(buffer);
+	if(SDL_SetClipboardText(copy_content)!=0) {
+	  printf("Cant copy text\n");   
+	}
+	cursor_outer(cursor, buffer);
+	buffer_delete(buffer, cursor, size);
+	buffer_process_lines(buffer);
       }
       break;
     case 'k':
@@ -362,12 +379,12 @@ void key_down(Buffer *buffer, Cursor *cursor, Font *font, SDL_Renderer *rend, si
     case 'd':
       size = cursor_dist(cursor, buffer, NULL, NULL);
       if(size==0) {
- cursor_right(cursor, buffer, 1, false);
- buffer_delete(buffer, cursor, 1);
+	cursor_right(cursor, buffer, 1, false);
+	buffer_delete(buffer, cursor, 1);
       }
       else {
- cursor_outer(cursor, buffer);
- buffer_delete(buffer, cursor, size);
+	cursor_outer(cursor, buffer);
+	buffer_delete(buffer, cursor, size);
       }
       buffer_process_lines(buffer);
       break;      
@@ -393,14 +410,14 @@ void key_down(Buffer *buffer, Cursor *cursor, Font *font, SDL_Renderer *rend, si
     case 'w':
       size = cursor_dist(cursor, buffer, &start, &end);
       if(size!=0) {
- //COPY TO CLIPBOARD
- char copy_content[size+1];
- memcpy(copy_content, buffer->buffer + start, end);
- copy_content[size] = 0;
+	//COPY TO CLIPBOARD
+	char copy_content[size+1];
+	memcpy(copy_content, buffer->buffer + start, end);
+	copy_content[size] = 0;
  
- if(SDL_SetClipboardText(copy_content)!=0) {
-   printf("Cant copy text\n");   
- }
+	if(SDL_SetClipboardText(copy_content)!=0) {
+	  printf("Cant copy text\n");   
+	}
       }
       break;
     default:
@@ -455,6 +472,34 @@ void key_down(Buffer *buffer, Cursor *cursor, Font *font, SDL_Renderer *rend, si
   window_fit(buffer, cursor);
 }
 
+void *thread_function(void *ptr) {
+  PassingStruct p = *(PassingStruct *) ptr;
+  printf("Thread started\n");  
+  bool now = false;
+  while(running) {
+    Sleep(400);
+    Uint32 current = SDL_GetTicks();
+    if((current > (*p.lasttime) + 400) && (current <= (*p.lasttime) + 8000)) {
+      render(p.rend, p.font, p.buffer, p.cursor, now);
+      now = !now;
+      Sleep(400);
+      render(p.rend, p.font, p.buffer, p.cursor, now);
+      now = !now;
+    }
+  }
+  printf("Thread stopped\n");
+  return NULL;
+}
+
+void start_thread(PassingStruct *s) {
+  pthread_t thread;
+  int result = pthread_create(&thread, NULL, thread_function, (void *) s);
+  if(result<0) {
+    fprintf(stderr, "ERORR: Can not start thread\n");
+    exit(1);
+  }
+}
+
 //TODO: BLINKING CURSOR
 //TODO: FONT HIGHLIGHTING
 int main(int argc, char **argv) {
@@ -473,19 +518,19 @@ int main(int argc, char **argv) {
   
   SDL_Window *wind =
     scp(SDL_CreateWindow(
-    "Editor",
-    SDL_WINDOWPOS_CENTERED,
-    SDL_WINDOWPOS_CENTERED,
-    WIDTH, HEIGHT,
-    SDL_WINDOW_RESIZABLE
-    ));
+			 "Editor",
+			 SDL_WINDOWPOS_CENTERED,
+			 SDL_WINDOWPOS_CENTERED,
+			 WIDTH, HEIGHT,
+			 SDL_WINDOW_RESIZABLE
+			 ));
 
   SDL_Renderer *rend =
     scp(SDL_CreateRenderer(
-      wind,
-      -1,
-      SDL_RENDERER_SOFTWARE
-      ));
+			   wind,
+			   -1,
+			   SDL_RENDERER_SOFTWARE
+			   ));
   Font font;
   font_init(&font, rend, FONT_PATH, FONT_SIZE);
 
@@ -494,20 +539,18 @@ int main(int argc, char **argv) {
 
   SDL_Event event;
   size_t d;
+  
+  Uint32 lasttime = SDL_GetTicks();
 
-  PassingStruct s = {wind, rend, &font, &buffer, &cursor};
+  PassingStruct s = {wind, rend, &font, &buffer, &cursor, &lasttime};
   SDL_AddEventWatch(resizingEventWatcher, &s);
 
-  Uint32 lasttime = SDL_GetTicks();
-  Uint32 lastaction = lasttime;
-  Uint32 currenttime;
-  bool show = true;
-  bool last = show;
-
   buffer_process_lines(&buffer);
+  start_thread(&s);
+
   while(running) {
     SDL_WaitEvent(&event);
-    bool action = true;
+    bool action = false;
 
     switch(event.type) {
     case SDL_QUIT:
@@ -516,28 +559,31 @@ int main(int argc, char **argv) {
     case SDL_KEYDOWN:
       key_ctrl(event.key.keysym.sym, true);
       key_down(&buffer, &cursor, &font, rend, event.key.keysym.sym, argv[1]);
+      action = true;
       break;
     case SDL_KEYUP:
-      key_ctrl(event.key.keysym.sym, false);      
+      key_ctrl(event.key.keysym.sym, false);
       break;
     case SDL_TEXTINPUT:
       d = cursor_dist(&cursor, &buffer, NULL, NULL);
       if(d!=0) {
- cursor_outer(&cursor, &buffer);
- buffer_delete(&buffer, &cursor, d);
+	cursor_outer(&cursor, &buffer);
+	buffer_delete(&buffer, &cursor, d);
       }
       buffer_insert(&buffer, &cursor, event.text.text);
       buffer_process_lines(&buffer);
       text_update(&buffer, &cursor);
       window_fit(&buffer, &cursor);
+      action = true;
       break;
     case SDL_MOUSEWHEEL:
       if(event.wheel.y>0) {
- y = y > 0 ? (y-1) : 0;
+	y = y > 0 ? (y-1) : 0;
       }
       else if(event.wheel.y<0){
- y++;
+	y++;
       }
+      action = true;
       break;
     case SDL_MOUSEMOTION:
       break;
@@ -545,43 +591,29 @@ int main(int argc, char **argv) {
       drag = true;
       cursor_reset(&cursor);
       if(event.button.button==SDL_BUTTON_LEFT) {
- cursor_click(&cursor, &buffer,
-       event.button.x + x*font.width - (off+1)*font.width,
-       event.button.y + y*font.height - PAD_TOP,
-       font.width, font.height, false);
+	cursor_click(&cursor, &buffer,
+		     event.button.x + x*font.width - (off+1)*font.width,
+		     event.button.y + y*font.height - PAD_TOP,
+		     font.width, font.height, false);
       }
       break;
     case SDL_MOUSEBUTTONUP:
       if(event.button.button==SDL_BUTTON_LEFT) {
- cursor_click(&cursor, &buffer,
-       event.button.x + x*font.width - (off + 1)*font.width,
-       event.button.y + y*font.height - PAD_TOP,
-       font.width, font.height, true);
-
+	cursor_click(&cursor, &buffer,
+		     event.button.x + x*font.width - (off + 1)*font.width,
+		     event.button.y + y*font.height - PAD_TOP,
+		     font.width, font.height, true);
       }
       drag = false;
       break;
     default:
-      action = false;
       break;
     }
 
-    currenttime = SDL_GetTicks();
-    if(action) {
-      lastaction = currenttime;
-      lasttime = currenttime;
-      show = true;
-    }
-    if(currenttime > lasttime + 400) {
-      show = show ? false : true;
-      lasttime = currenttime;
-    }
-    if(currenttime > lastaction + 4000) {
-      show = true;
-    }
-
+    if(action) lasttime = SDL_GetTicks();
+    
     text_update(&buffer, &cursor);
-    render(rend, &font, &buffer, &cursor, show);
+    render(rend, &font, &buffer, &cursor, true);
   }
 
   SDL_DestroyRenderer(rend);
