@@ -22,11 +22,6 @@ void buffer_init(Buffer *buffer) {
   buffer->positions = (size_t *) malloc(sizeof(size_t) * LINES_SIZE);
   buffer->lines_cap = LINES_SIZE;
   buffer_check_ptr(buffer);
-
-  buffer->buffer_size = 0;
-  buffer->lines_size = 1;
-  buffer->positions[0]=0;
-  buffer->lines[0]=0; 
 }
 
 void buffer_quit(Buffer *buffer) {

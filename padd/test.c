@@ -1,7 +1,8 @@
 #include <stdio.h>
 
-int main() {
-    if(
-    printf("hsdfasd\n");
+int main(int argc, char **argv) {    
+    for(int i=0;i<argc;i++) {
+        printf("%s\n", argv[i]);
+    }    
     return 0;
 }

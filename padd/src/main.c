@@ -8,10 +8,10 @@
 
 #define BG_COLOR 0x202020ff
 #define FONT_COLOR 0xffffffff
-#define FONT_DARKER_COLOR 0xaaaaaaff
+#define FONT_DARKER_COLOR 0x616161ff
 #define HG_COLOR 0x606060ff
 #define YELLOW 0xf1d302ff
-#define DEFINE_GRAY 0xff0000ff
+#define DEFINE_GRAY 0xbbbbbbff
 
 #define WIDTH 800
 #define HEIGHT 600
@@ -19,7 +19,7 @@
 #define PAD_LEFT 25
 #define PAD_TOP 5
 
-#define FONT_PATH "./rsc/consola.ttf"
+#define FONT_PATH "./rsc/iosevka-regular.ttf"
 #define FONT_SIZE 24
 
 #define ENTER 10
@@ -32,6 +32,8 @@ size_t width;
 size_t x = 0;
 size_t y = 0;
 
+size_t off = 0;
+
 bool running = true;
 
 bool ctrl = false;
@@ -43,12 +45,10 @@ Uint32 colors[] = {FONT_COLOR, YELLOW, DEFINE_GRAY};
 
 #define KEYWORDS_CAP 12
 static char *keywords[KEYWORDS_CAP] = {
-  "if", "while", "for", "const", "static", "typedef", "struct"
-  "#define", "#include"
-};
-static size_t keywords_len[] = { 2, 5, 3, 4, 6, 7, 6, 7};
-static Uint32 keywords_colors[] = { 1, 1, 1, 1, 1, 1, 1, 2};
-static size_t keywords_count = 8;
+  "if", "while", "for", "const", "static", "typedef", "struct", "#include", "#define"};
+static size_t keywords_len[] = { 2, 5, 3, 5, 6, 7, 6, 8, 7, 3, 4, 6, 4};
+static Uint32 keywords_colors[] = { 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2};
+static size_t keywords_count = 9;
 
 void load_number_in_buffer(int n, char *buffer, int size) {  
   for(int i=size-2;i>=0;i--) {
@@ -69,22 +69,22 @@ bool line_eol(char *buffer, size_t len, int *color, size_t *end) {
       bool candidate = true;
       if(i+keywords_len[k]>len) continue;
       for(size_t j=0;j<keywords_len[k];j++) {
-	if(buffer[i+j]!=keywords[k][j]) {
-	  candidate = false;
-	  break;
-	}
+ if(buffer[i+j]!=keywords[k][j]) {
+   candidate = false;
+   break;
+ }
       }
       if(candidate) {
-	if(i==0) {
-	  if(end) *end=keywords_len[k];
-	  if(color) *color=keywords_colors[k];
-	  return keywords_len[k]==len;
-	}
-	else {
-	  if(end) *end=i;
-	  if(color) *color=0;
-	  return i==len-1;
-	}      
+ if(i==0) {
+   if(end) *end=keywords_len[k];
+   if(color) *color=keywords_colors[k];
+   return keywords_len[k]==len;
+ }
+ else {
+   if(end) *end=i;
+   if(color) *color=0;
+   return i==len-1;
+ }      
       }
     }
   }
@@ -94,7 +94,7 @@ bool line_eol(char *buffer, size_t len, int *color, size_t *end) {
   return true;
 }
 
-#define INTERVAL_CAP 12
+#define INTERVAL_CAP 64
 #define LINE_CAP 128
 
 typedef struct{
@@ -118,7 +118,7 @@ Text text = {0};
 void text_update(const Buffer *buffer, const Cursor *cursor) {
   (void) cursor;
   text.lines_count = 0;
-  for(size_t i=y;i<buffer->lines_size;i++) {
+  for(size_t i=y;i<(y+height) && i<buffer->lines_size;i++) {
     Line line = {0};
     line.line = i;
         
@@ -140,7 +140,7 @@ void text_update(const Buffer *buffer, const Cursor *cursor) {
       acc+=end;
           
       if(eol) {
-	break;
+ break;
       }
     }
 
@@ -170,15 +170,15 @@ void render(SDL_Renderer *rend, Font *font, Buffer *buffer, const Cursor *cursor
     for(int i=min.y;i<=max.y;i++) {
       float x1;
       if(i==min.y) {
-	x1 = min.x;
+ x1 = min.x;
       }
       else {
-	x1 = 0;
+ x1 = 0;
       }
 
       float x2 = width;
       if(i==max.y) {
-	x2 = max.x - x1;
+ x2 = max.x - x1;
       }
 
       SDL_Rect temp = {x1*font->width - origin.x, i*font->height - origin.y, x2*font->width, font->height};
@@ -188,20 +188,20 @@ void render(SDL_Renderer *rend, Font *font, Buffer *buffer, const Cursor *cursor
   }
 
   //DRAW BUFFER
-  int off = ((int) offset) - 1;
+  off = ((int) offset) - 1;
   char number_buffer[off];
   number_buffer[off-1] = 0;
   size_t k = y+1;
 
-  //DRAW TEXR
+  //DRAW TEXT
   for(size_t i=0;i<text.lines_count;i++) {
     Line line = text.lines[i];
     for(size_t j=0;j<line.intervals_count;j++) {
       Interval inter = line.intervals[j];
       if(inter.end==0) continue;
       font_render_text_sized(rend, font, vec(inter.start*font->width - origin.x, (line.line)*font->height*scale - origin.y),
-			     buffer->buffer + buffer->positions[line.line] + inter.start, inter.end,
-			     scale, inter.color);
+        buffer->buffer + buffer->positions[line.line] + inter.start, inter.end,
+        scale, inter.color);
     }
 
     //DRAW LINE
@@ -211,8 +211,8 @@ void render(SDL_Renderer *rend, Font *font, Buffer *buffer, const Cursor *cursor
       color = YELLOW;
     }
     font_render_text_sized(rend, font, vec(0 - origin.x -  off*font->width, (i+y)*font->height*scale - origin.y),
-			   number_buffer, offset-1,
-			   scale, color);
+      number_buffer, offset-1,
+      scale, color);
     k++;
   }
   
@@ -224,9 +224,9 @@ void render(SDL_Renderer *rend, Font *font, Buffer *buffer, const Cursor *cursor
     //DRAW CHAR BEHIND CURSOR
     if(cursor->pos<buffer->buffer_size) {
       font_render_char(rend, font,
-		       vec(cursor->x*font->width*scale - origin.x,
-			   cursor->y*font->height*scale - origin.y),
-		       buffer->buffer[cursor->pos], scale, BG_COLOR);        
+         vec(cursor->x*font->width*scale - origin.x,
+      cursor->y*font->height*scale - origin.y),
+         buffer->buffer[cursor->pos], scale, BG_COLOR);        
     }
   }
 
@@ -326,24 +326,22 @@ void key_down(Buffer *buffer, Cursor *cursor, Font *font, SDL_Renderer *rend, si
       content = SDL_GetClipboardText();
       buffer_insert(buffer, cursor, content);
       buffer_process_lines(buffer);
-      text_update(buffer, cursor);
       SDL_free(content);
       break;
     case 'w':
       size = cursor_dist(cursor, buffer, &start, &end);
       if(size!=0) {
-	//COPY TO CLIPBOARD
-	char copy_content[size+1];
-	memcpy(copy_content, buffer->buffer + start, size);
-	copy_content[size] = 0;
+ //COPY TO CLIPBOARD
+ char copy_content[size+1];
+ memcpy(copy_content, buffer->buffer + start, size);
+ copy_content[size] = 0;
  
-	if(SDL_SetClipboardText(copy_content)!=0) {
-	  printf("Cant copy text\n");   
-	}
-	cursor_outer(cursor, buffer);
-	buffer_delete(buffer, cursor, size);
-	buffer_process_lines(buffer);
-	text_update(buffer, cursor);
+ if(SDL_SetClipboardText(copy_content)!=0) {
+   printf("Cant copy text\n");   
+ }
+ cursor_outer(cursor, buffer);
+ buffer_delete(buffer, cursor, size);
+ buffer_process_lines(buffer);
       }
       break;
     case 'k':
@@ -351,7 +349,6 @@ void key_down(Buffer *buffer, Cursor *cursor, Font *font, SDL_Renderer *rend, si
       cursor_right(cursor, buffer, size, false);
       buffer_delete(buffer, cursor, size);
       buffer_process_lines(buffer);
-      text_update(buffer, cursor);
       break;
     case 's':
       if(file_path!=NULL) buffer_save_file(buffer, file_path);
@@ -365,15 +362,14 @@ void key_down(Buffer *buffer, Cursor *cursor, Font *font, SDL_Renderer *rend, si
     case 'd':
       size = cursor_dist(cursor, buffer, NULL, NULL);
       if(size==0) {
-	cursor_right(cursor, buffer, 1, false);
-	buffer_delete(buffer, cursor, 1);
+ cursor_right(cursor, buffer, 1, false);
+ buffer_delete(buffer, cursor, 1);
       }
       else {
-	cursor_outer(cursor, buffer);
-	buffer_delete(buffer, cursor, size);
+ cursor_outer(cursor, buffer);
+ buffer_delete(buffer, cursor, size);
       }
       buffer_process_lines(buffer);
-      text_update(buffer, cursor);
       break;      
     case 'f':
       cursor_right(cursor, buffer, 1, shift);
@@ -397,14 +393,14 @@ void key_down(Buffer *buffer, Cursor *cursor, Font *font, SDL_Renderer *rend, si
     case 'w':
       size = cursor_dist(cursor, buffer, &start, &end);
       if(size!=0) {
-	//COPY TO CLIPBOARD
-	char copy_content[size+1];
-	memcpy(copy_content, buffer->buffer + start, end);
-	copy_content[size] = 0;
+ //COPY TO CLIPBOARD
+ char copy_content[size+1];
+ memcpy(copy_content, buffer->buffer + start, end);
+ copy_content[size] = 0;
  
-	if(SDL_SetClipboardText(copy_content)!=0) {
-	  printf("Cant copy text\n");   
-	}
+ if(SDL_SetClipboardText(copy_content)!=0) {
+   printf("Cant copy text\n");   
+ }
       }
       break;
     default:
@@ -423,7 +419,6 @@ void key_down(Buffer *buffer, Cursor *cursor, Font *font, SDL_Renderer *rend, si
       buffer_delete(buffer, cursor, size);
     }
     buffer_process_lines(buffer);
-    text_update(buffer, cursor);
     break;
   case SDLK_ESCAPE:
     running = false;
@@ -448,12 +443,10 @@ void key_down(Buffer *buffer, Cursor *cursor, Font *font, SDL_Renderer *rend, si
     }
     buffer_insert_size(buffer, cursor, "\n", 1);
     buffer_process_lines(buffer);
-    text_update(buffer, cursor);
     break;
   case SDLK_TAB:
     buffer_insert_size(buffer, cursor, "    ", 4);
     buffer_process_lines(buffer);
-    text_update(buffer, cursor);
     break;
   default:
     break;
@@ -480,19 +473,19 @@ int main(int argc, char **argv) {
   
   SDL_Window *wind =
     scp(SDL_CreateWindow(
-			 "Editor",
-			 SDL_WINDOWPOS_CENTERED,
-			 SDL_WINDOWPOS_CENTERED,
-			 WIDTH, HEIGHT,
-			 SDL_WINDOW_RESIZABLE
-			 ));
+    "Editor",
+    SDL_WINDOWPOS_CENTERED,
+    SDL_WINDOWPOS_CENTERED,
+    WIDTH, HEIGHT,
+    SDL_WINDOW_RESIZABLE
+    ));
 
   SDL_Renderer *rend =
     scp(SDL_CreateRenderer(
-			   wind,
-			   -1,
-			   SDL_RENDERER_SOFTWARE
-			   ));
+      wind,
+      -1,
+      SDL_RENDERER_SOFTWARE
+      ));
   Font font;
   font_init(&font, rend, FONT_PATH, FONT_SIZE);
 
@@ -512,8 +505,6 @@ int main(int argc, char **argv) {
   bool last = show;
 
   buffer_process_lines(&buffer);
-  text_update(&buffer, &cursor);
-  render(rend, &font, &buffer, &cursor, show);
   while(running) {
     SDL_WaitEvent(&event);
     bool action = true;
@@ -532,8 +523,8 @@ int main(int argc, char **argv) {
     case SDL_TEXTINPUT:
       d = cursor_dist(&cursor, &buffer, NULL, NULL);
       if(d!=0) {
-	cursor_outer(&cursor, &buffer);
-	buffer_delete(&buffer, &cursor, d);
+ cursor_outer(&cursor, &buffer);
+ buffer_delete(&buffer, &cursor, d);
       }
       buffer_insert(&buffer, &cursor, event.text.text);
       buffer_process_lines(&buffer);
@@ -542,10 +533,10 @@ int main(int argc, char **argv) {
       break;
     case SDL_MOUSEWHEEL:
       if(event.wheel.y>0) {
-	y = y > 0 ? (y-1) : 0;
+ y = y > 0 ? (y-1) : 0;
       }
       else if(event.wheel.y<0){
-	y++;
+ y++;
       }
       break;
     case SDL_MOUSEMOTION:
@@ -554,18 +545,18 @@ int main(int argc, char **argv) {
       drag = true;
       cursor_reset(&cursor);
       if(event.button.button==SDL_BUTTON_LEFT) {
-	cursor_click(&cursor, &buffer,
-		     event.button.x + x*font.width - 2.0*font.width,
-		     event.button.y + y*font.height - PAD_TOP,
-		     font.width, font.height, false);
+ cursor_click(&cursor, &buffer,
+       event.button.x + x*font.width - (off+1)*font.width,
+       event.button.y + y*font.height - PAD_TOP,
+       font.width, font.height, false);
       }
       break;
     case SDL_MOUSEBUTTONUP:
       if(event.button.button==SDL_BUTTON_LEFT) {
-	cursor_click(&cursor, &buffer,
-		     event.button.x + x*font.width - 2.0*font.width,
-		     event.button.y + y*font.height - PAD_TOP,
-		     font.width, font.height, true);
+ cursor_click(&cursor, &buffer,
+       event.button.x + x*font.width - (off + 1)*font.width,
+       event.button.y + y*font.height - PAD_TOP,
+       font.width, font.height, true);
 
       }
       drag = false;
@@ -589,6 +580,7 @@ int main(int argc, char **argv) {
       show = true;
     }
 
+    text_update(&buffer, &cursor);
     render(rend, &font, &buffer, &cursor, show);
   }
 

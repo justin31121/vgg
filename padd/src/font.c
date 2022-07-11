@@ -20,7 +20,7 @@ void font_init(Font *f, SDL_Renderer *rend, const char* path, size_t font_size) 
 
     f->texture = texture;
     f->width = (int) (w/len);
-    f->height = font_size;
+    f->height = h;
 
     for(size_t i=0;i<ASCII_LEN;i++) {
         f->glyphs[i] = (SDL_Rect) {
