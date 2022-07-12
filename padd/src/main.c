@@ -12,6 +12,7 @@
 #define FONT_DARKER_COLOR 0x616161ff
 #define HG_COLOR 0x606060ff
 #define YELLOW 0xf1d302ff
+#define GREEN 0x00aa00ff
 #define DEFINE_GRAY 0xbbbbbbff
 
 #define WIDTH 800
@@ -42,14 +43,14 @@ bool shift = false;
 bool alt = false;
 bool drag = false;
 
-Uint32 colors[] = {FONT_COLOR, YELLOW, DEFINE_GRAY};
+Uint32 colors[] = {FONT_COLOR, YELLOW, DEFINE_GRAY, GREEN};
 
 #define KEYWORDS_CAP 12
 static char *keywords[KEYWORDS_CAP] = {
-  "if", "while", "for", "const", "static", "typedef", "struct", "#include", "#define"};
-static size_t keywords_len[] = { 2, 5, 3, 5, 6, 7, 6, 8, 7, 3, 4, 6, 4};
-static Uint32 keywords_colors[] = { 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2};
-static size_t keywords_count = 9;
+  "if", "while", "for", "const", "static", "typedef", "struct", "#include", "#define", "return"};
+static size_t keywords_len[] = { 2, 5, 3, 5, 6, 7, 6, 8, 7, 3, 4, 6, 6, 4, 5};
+static Uint32 keywords_colors[] = { 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 1};
+static size_t keywords_count = 10;
 
 void load_number_in_buffer(int n, char *buffer, int size) {  
   for(int i=size-2;i>=0;i--) {
@@ -64,8 +65,36 @@ void load_number_in_buffer(int n, char *buffer, int size) {
   }
 }
 
+bool qoute = false;
+
 bool line_eol(char *buffer, size_t len, int *color, size_t *end) {
   for(size_t i=0;i<len;i++) {
+    if(buffer[i]=='\"' && (i==0 || buffer[i-1]!='\\')) {
+      bool open = true;
+      size_t p; 
+      for(p=i+1;p<len;p++) {
+	if(buffer[p]=='\"' && buffer[i-1]!='\\') {
+	  open = false;
+	  p++;
+	  break;
+	}
+      }
+      if(open) {
+	qoute = !qoute;
+      }
+      else {
+	if(i==0) {
+	  if(end) *end=p;
+	  if(color) *color=3;
+	  return p==len-1;
+	}
+	else {
+	  if(end) *end=i;
+	  if(color) *color=0;
+	  return i==len-1;
+	}
+      }
+    }
     for(size_t k=0;k<keywords_count;k++) {
       bool candidate = true;
       if(i+keywords_len[k]>len) continue;
@@ -95,6 +124,51 @@ bool line_eol(char *buffer, size_t len, int *color, size_t *end) {
   return true;
 }
 
+bool isText(char *d) {
+  char c = d[0];
+  return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+}
+
+int main1(int argc, char **argv) {
+
+  (void) argc;
+  (void) argv;
+
+  char buff[] = "if   asdfasd \"asdf\"a";
+  size_t len = strlen(buff);
+
+  size_t end=0;
+  size_t acc=0;
+  int special = 0;
+  bool eol;
+  while(true) {
+    eol = line_eol(buff + acc, len - acc, &special, &end);
+
+    if(special) {
+      if(acc>0 && isText(buff + (acc-1))) {
+	special = 0;
+      }
+      if((acc+end-1<len) && isText(buff + (acc+end))) {
+	special = 0;
+      }
+    }
+    if(qoute) {
+      special = 3;
+    }
+
+    printf("%.*s\n", (int) end, buff + acc);
+    printf("\t(%lld, %lld): %d\n", acc, end, special);
+    
+    acc+=end;
+          
+    if(eol) {
+      break;
+    }
+  }
+
+  return 0;
+}
+
 #define INTERVAL_CAP 64
 #define LINE_CAP 256
 
@@ -115,11 +189,6 @@ typedef struct{
 }Text;
 
 Text text = {0};
-
-bool isText(char *d) {
-  char c = d[0];
-  return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
-}
 
 void text_update(const Buffer *buffer, const Cursor *cursor) {
   (void) cursor;
