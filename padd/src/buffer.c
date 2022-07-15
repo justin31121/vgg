@@ -1,6 +1,6 @@
 #include "./buffer.h"
 
-void buffer_check_ptr(Buffer *buffer) {
+void buffer_check_ptr(const Buffer *buffer) {
   if(!buffer->buffer) {
     fprintf(stderr, "ERROR: Can not allocate enough memory for buffer\n");
     exit(1);
