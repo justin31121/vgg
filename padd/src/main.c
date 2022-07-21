@@ -375,7 +375,6 @@ int main(int argc, char **argv) {
   Cursor cursor = {0};
   Buffer buffer = {0};
   Text text = {0};
-  
 
   buffer_init(&buffer);
   text_init(&text);

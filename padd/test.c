@@ -13,7 +13,7 @@ Vec vec_add(Vec a, Vec b) {
 }
 
 int main(int argc, char **argv) {
-    Vec v = { 3, 2};
+    Vec v = { 1, 2};
     Vec q = { -3, 4};
 
     q = vec_add(v, q);
